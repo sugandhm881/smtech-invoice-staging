@@ -66,10 +66,22 @@ EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
 
 # UPI CONFIG
 UPI_ID = "sugandh.mishra1@ybl"
-UPI_NAME = "Sugandh Mishra"
+UPI_NAME = "SM Tech"
 
 # CRON TIME (UTC) -> 16:30 UTC = 10:00 PM IST
 REPORT_HOUR_UTC = 16 
+
+# GST STATE CODES FOR GSTR-1
+STATE_CODES = {
+    "Jammu and Kashmir": "01", "Himachal Pradesh": "02", "Punjab": "03", "Chandigarh": "04",
+    "Uttarakhand": "05", "Haryana": "06", "Delhi": "07", "Rajasthan": "08", "Uttar Pradesh": "09",
+    "Bihar": "10", "Sikkim": "11", "Arunachal Pradesh": "12", "Nagaland": "13", "Manipur": "14",
+    "Mizoram": "15", "Tripura": "16", "Meghalaya": "17", "Assam": "18", "West Bengal": "19",
+    "Jharkhand": "20", "Odisha": "21", "Chhattisgarh": "22", "Madhya Pradesh": "23",
+    "Gujarat": "24", "Dadra and Nagar Haveli": "26", "Maharashtra": "27", "Karnataka": "29",
+    "Goa": "30", "Lakshadweep": "31", "Kerala": "32", "Tamil Nadu": "33", "Puducherry": "34",
+    "Andaman and Nicobar Islands": "35", "Telangana": "36", "Andhra Pradesh": "37", "Ladakh": "38"
+}
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
@@ -133,20 +145,24 @@ def send_email_raw(to_email, subject, body):
         logging.error(f"Email Error: {e}")
         return False
 
+# --- IMPROVED IMAGE COMPRESSION ---
 def compress_image(file_storage, max_width=400):
     try:
         img = Image.open(file_storage)
+        
+        # Resize logic
         width_percent = (max_width / float(img.size[0]))
         if width_percent < 1:
             new_height = int((float(img.size[1]) * float(width_percent)))
             img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
         
+        # Convert all images to RGBA/RGB and save as PNG to ensure FPDF compatibility
+        # This fixes the issue where JPEGs saved as .png caused errors
+        if img.mode not in ('RGBA', 'RGB', 'L'):
+            img = img.convert('RGBA')
+            
         output = io.BytesIO()
-        if img.format == 'PNG' or img.mode == 'RGBA':
-            img.save(output, format='PNG', optimize=True)
-        else:
-            img = img.convert('RGB')
-            img.save(output, format='JPEG', quality=70, optimize=True)
+        img.save(output, format='PNG', optimize=True)
         return base64.b64encode(output.getvalue()).decode('utf-8')
     except Exception as e:
         logging.error(f"Error processing image: {e}")
@@ -328,6 +344,7 @@ def PDF_Generator(invoice_data, is_credit_note=False):
     col_width = (page_width / 2) - 5 
     line_height = 5 
     
+    # --- LOGO RENDER ---
     logo_data = profile.get('logo_base64')
     if logo_data:
         try:
@@ -336,34 +353,39 @@ def PDF_Generator(invoice_data, is_credit_note=False):
                 tmp_path = tmp.name
             pdf.image(tmp_path, x=15, y=8, w=30)
             os.unlink(tmp_path)
-        except: pass
+        except Exception as e:
+            logging.error(f"Logo Error: {e}")
     elif os.path.exists(DEFAULT_LOGO):
         pdf.image(DEFAULT_LOGO, x=15, y=8, w=30)
     
+    # --- HEADER ---
     pdf.set_font("Calibri", "B", 22)
     is_non_gst = invoice_data.get('is_non_gst', False)
+    
     if is_credit_note:
-        pdf.set_text_color(220, 38, 38)
+        pdf.set_text_color(220, 38, 38) # Red
         header_title = "CREDIT NOTE"
     elif is_non_gst:
-        pdf.set_text_color(0, 128, 0)
+        pdf.set_text_color(0, 128, 0) # Green
         header_title = "BILL OF SUPPLY"
     else:
-        pdf.set_text_color(255, 165, 0)
+        pdf.set_text_color(255, 165, 0) # Orange
         header_title = "TAX INVOICE"
 
     pdf.cell(page_width, 10, profile.get('company_name', 'SM Tech'), ln=True, align='C')
     pdf.set_font("Calibri", "B", 14)
     pdf.set_text_color(0, 0, 0)
     pdf.cell(page_width, 8, header_title, ln=True, align='C')
-    pdf.set_font("Calibri", "", 10)
     
+    # --- SELLER DETAILS ---
+    pdf.set_font("Calibri", "", 10)
     my_gstin = profile.get('gstin', '')
     address_str = f"{profile.get('address_1','')}\n{profile.get('address_2','')}\nPhone: {profile.get('phone','')} | E-mail: {profile.get('email','')}\nGSTIN: {my_gstin}"
     pdf.multi_cell(page_width, line_height, address_str, align='C')
     pdf.ln(5)
     pdf.line(margin, pdf.get_y(), pdf.w - margin, pdf.get_y())
 
+    # --- CREDIT NOTE REF ---
     if is_credit_note:
         pdf.ln(3)
         pdf.set_font("Calibri", "B", 11)
@@ -375,8 +397,23 @@ def PDF_Generator(invoice_data, is_credit_note=False):
         pdf.set_text_color(0, 0, 0)
     pdf.ln(5)
 
-    bill_to_text = f"{invoice_data.get('client_name','')}\n{invoice_data.get('client_address1','')}\n{invoice_data.get('client_address2','')}\nGSTIN: {invoice_data.get('client_gstin','')}\nEmail: {invoice_data.get('client_email','')}\nMobile: {invoice_data.get('client_mobile','')}"
-    ship_to_text = f"{invoice_data.get('shipto_name','')}\n{invoice_data.get('shipto_address1','')}\n{invoice_data.get('shipto_address2','')}\nGSTIN: {invoice_data.get('shipto_gstin','')}\nEmail: {invoice_data.get('shipto_email','')}\nMobile: {invoice_data.get('shipto_mobile','')}"
+    # --- ADDRESS FORMATTING HELPERS ---
+    def format_address(prefix):
+        addr_lines = [
+            invoice_data.get(f'{prefix}_name',''),
+            invoice_data.get(f'{prefix}_address1',''),
+            invoice_data.get(f'{prefix}_address2',''),
+            f"{invoice_data.get(f'{prefix}_district','')} - {invoice_data.get(f'{prefix}_pincode','')}",
+            f"{invoice_data.get(f'{prefix}_state','')}",
+            f"GSTIN: {invoice_data.get(f'{prefix}_gstin','')}",
+            f"Mobile: {invoice_data.get(f'{prefix}_mobile','')}"
+        ]
+        # Filter empty lines
+        return "\n".join([line for line in addr_lines if line and line.strip() != '-' and line.strip() != ''])
+
+    bill_to_text = format_address('client')
+    ship_to_text = format_address('shipto')
+    
     invoice_no_text = f"{header_title} No: {invoice_data.get('bill_no','')}"
     invoice_date_text = f"Date: {invoice_data.get('invoice_date','')}"
     po_number_text = f"PO Number: {invoice_data.get('po_number','')}"
@@ -386,11 +423,14 @@ def PDF_Generator(invoice_data, is_credit_note=False):
     pdf.cell(col_width, line_height, "Bill To:", ln=True)
     pdf.set_font("Calibri", "", 10)
     pdf.multi_cell(col_width, line_height, bill_to_text)
+    
     y_left = pdf.get_y()
     pdf.set_y(y_start)
     pdf.set_x(margin + col_width + 10)
+    
     pdf.set_font("Calibri", "B", 10)
     pdf.multi_cell(col_width, line_height, f"{invoice_no_text}\n{invoice_date_text}")
+    
     y_right = pdf.get_y()
     pdf.set_y(max(y_left, y_right))
     pdf.ln(5) 
@@ -400,18 +440,35 @@ def PDF_Generator(invoice_data, is_credit_note=False):
     pdf.cell(col_width, line_height, "Ship To:", ln=True)
     pdf.set_font("Calibri", "", 10)
     pdf.multi_cell(col_width, line_height, ship_to_text)
+    
     y_left = pdf.get_y()
     pdf.set_y(y_start)
     pdf.set_x(margin + col_width + 10)
+    
     pdf.set_font("Calibri", "B", 10)
     pdf.multi_cell(col_width, line_height, po_number_text)
+    
     y_right = pdf.get_y()
     pdf.set_y(max(y_left, y_right))
     pdf.ln(10) 
     
-    particulars_w, hsn_w, qty_w, rate_w, tax_percent_w, taxable_amt_w, tax_amt_w, total_w = 60, 20, 10, 20, 15, 20, 20, 15
-    pdf.set_fill_color(255, 204, 153)
-    pdf.set_font("Calibri", "B", 10)
+    # --- TABLE CONFIGURATION (Refined Widths) ---
+    # Total Width available: 180mm
+    # Particulars: 50 | HSN: 15 | Qty: 12 | Rate: 20 | Tax%: 13 | Taxable: 25 | TaxAmt: 20 | Total: 25
+    # Sum: 50+15+12+20+13+25+20+25 = 180
+    
+    particulars_w = 50
+    hsn_w = 15
+    qty_w = 12
+    rate_w = 20
+    tax_percent_w = 13
+    taxable_amt_w = 25
+    tax_amt_w = 20
+    total_w = 25
+
+    # --- TABLE HEADER ---
+    pdf.set_fill_color(255, 204, 153) # Light Orange
+    pdf.set_font("Calibri", "B", 9) # Slightly smaller font for better fit
     pdf.cell(particulars_w, 8, "Particulars", 1, 0, 'L', True)
     pdf.cell(hsn_w, 8, "HSN", 1, 0, 'C', True)
     pdf.cell(qty_w, 8, "Qty", 1, 0, 'C', True)
@@ -421,7 +478,8 @@ def PDF_Generator(invoice_data, is_credit_note=False):
     pdf.cell(tax_amt_w, 8, "Tax Amt", 1, 0, 'R', True)
     pdf.cell(total_w, 8, "Total", 1, 1, 'R', True)
 
-    pdf.set_font("Calibri", "", 10)
+    # --- TABLE ROWS ---
+    pdf.set_font("Calibri", "", 9)
     particulars = invoice_data.get('particulars', [])
     hsns = invoice_data.get('hsns', [])
     qtys = invoice_data.get('qtys', [])
@@ -431,28 +489,60 @@ def PDF_Generator(invoice_data, is_credit_note=False):
     line_tax_amounts = invoice_data.get('line_tax_amounts', [])
     line_total_amounts = invoice_data.get('line_total_amounts', [])
     
+    total_qty_calc = 0
+
     for i in range(len(particulars)):
         start_y, start_x = pdf.get_y(), pdf.get_x()
+        
+        # Multi-cell for Particulars (Auto Wrap)
         pdf.multi_cell(particulars_w, 7, str(particulars[i]), 0, 'L')
         y_after = pdf.get_y()
         row_h = y_after - start_y
+        
+        # Reset position to next column
         pdf.set_xy(start_x + particulars_w, start_y)
+        
+        # Qty Calc
+        qty_val = float(qtys[i]) if i < len(qtys) else 0
+        total_qty_calc += abs(qty_val)
+        qty_str = str(int(abs(qty_val))) # No Decimal
+
+        # Tax % Format (No Decimal)
+        try:
+            tax_p = float(taxrates[i])
+            tax_str = f"{tax_p:.0f}%" 
+        except: tax_str = "0%"
+
         display_hsn = "" if is_non_gst else (str(hsns[i]) if i < len(hsns) else '')
+        
         pdf.cell(hsn_w, row_h, display_hsn, 1, 0, 'C')
-        pdf.cell(qty_w, row_h, str(abs(float(qtys[i]))), 1, 0, 'C')
+        pdf.cell(qty_w, row_h, qty_str, 1, 0, 'C') 
         pdf.cell(rate_w, row_h, f"{abs(float(rates[i])):.2f}", 1, 0, 'R')
-        pdf.cell(tax_percent_w, row_h, f"{abs(float(taxrates[i])):.2f}%", 1, 0, 'R')
+        pdf.cell(tax_percent_w, row_h, tax_str, 1, 0, 'R')
         pdf.cell(taxable_amt_w, row_h, f"{abs(float(amounts[i])):.2f}", 1, 0, 'R')
         pdf.cell(tax_amt_w, row_h, f"{abs(float(line_tax_amounts[i])):.2f}", 1, 0, 'R')
         pdf.cell(total_w, row_h, f"{abs(float(line_total_amounts[i])):.2f}", 1, 0, 'R')
+        
+        # Border for particulars (using rect because multi_cell doesn't draw full height border automatically in complex layouts)
         pdf.rect(start_x, start_y, particulars_w, row_h)
         pdf.set_y(y_after)
 
-    pdf.set_font("Calibri", "B", 10)
+    # --- TOTAL QTY ROW ---
+    pdf.set_font("Calibri", "B", 9)
     pdf.set_fill_color(230, 230, 230)
+    
+    # Label
+    pdf.cell(particulars_w + hsn_w, 7, "Total Quantity:", 1, 0, 'R', True)
+    # Value
+    pdf.cell(qty_w, 7, str(int(total_qty_calc)), 1, 0, 'C', True)
+    # Fill rest
+    remaining_w = page_width - (particulars_w + hsn_w + qty_w)
+    pdf.cell(remaining_w, 7, "", 1, 1, 'R', True)
+    
+    # --- TOTALS ---
     def add_total(label, val):
-        pdf.cell(150, 7, label, 1, 0, 'R', True)
-        pdf.cell(30, 7, f"{abs(val):.2f}", 1, 1, 'R', True)
+        pdf.cell(150, 7, label, 1, 0, 'R', True) # 150 covers most cols
+        pdf.cell(30, 7, f"{abs(val):.2f}", 1, 1, 'R', True) # Aligns with Total
     
     add_total("Sub Total", invoice_data.get('sub_total',0))
     add_total("IGST", invoice_data.get('igst',0))
@@ -461,13 +551,16 @@ def PDF_Generator(invoice_data, is_credit_note=False):
     add_total("Grand Total", invoice_data.get('grand_total',0))
     pdf.ln(10)
 
+    # --- FOOTER & BANK ---
     pdf.set_font("Calibri", "", 10)
     bank_text = f"Rupees: {convert_to_words(invoice_data.get('grand_total',0))}\nBank Name: {profile.get('bank_name','')}\nAccount Holder: {profile.get('account_holder','')}\nAccount No: {profile.get('account_no','')}\nIFSC: {profile.get('ifsc','')}"
     pdf.multi_cell(page_width, line_height, bank_text)
     pdf.ln(5)
+    
     pdf.set_font("Calibri", "B", 10)
     pdf.cell(0, 5, f"For {profile.get('company_name', 'SM Tech')}", ln=True, align='R')
 
+    # --- SIGNATURE RENDER ---
     sig_data = profile.get('signature_base64')
     if sig_data:
         try:
@@ -476,7 +569,8 @@ def PDF_Generator(invoice_data, is_credit_note=False):
                 tmp_path = tmp.name
             pdf.image(tmp_path, x=pdf.w - margin - 40, y=pdf.get_y(), w=40)
             os.unlink(tmp_path)
-        except: pass
+        except Exception as e:
+            logging.error(f"Signature Error: {e}")
     elif os.path.exists(DEFAULT_SIGNATURE):
         pdf.image(DEFAULT_SIGNATURE, x=pdf.w - margin - 40, y=pdf.get_y(), w=40) 
     
@@ -751,6 +845,15 @@ def user_profile():
                 flash(f"User {new_u} created! (Inactive by default)", "success")
             return redirect(url_for('user_profile'))
 
+        if 'action_reset_pass' in request.form:
+            if not current_user.is_master: return "Unauthorized", 403
+            target = request.form.get('target_user_id')
+            new_pass = request.form.get('reset_password')
+            if target and new_pass:
+                db.collection('app_users').document(target).set({"password": new_pass}, merge=True)
+                flash(f"Password for {target} updated successfully.", "success")
+            return redirect(url_for('user_profile', edit_user=target))
+
         target_user = request.form.get('target_user_id')
         if not current_user.is_master:
             flash("You are not authorized to update profile settings.", "error")
@@ -795,9 +898,22 @@ def user_profile():
 def handle_invoice():
     try:
         data = request.json or {}
-        is_edit = data.get('is_edit', False)  # Check for edit mode
+        is_edit = data.get('is_edit', False)
         is_non_gst = data.get('is_non_gst', False)
+        
+        # CLIENT DETAILS
         client_name = data.get('client_name','').strip()
+        client_details = {
+            "address1": data.get('client_address1'),
+            "address2": data.get('client_address2'),
+            "pincode": data.get('client_pincode'),
+            "district": data.get('client_district'),
+            "state": data.get('client_state'),
+            "gstin": data.get('client_gstin'),
+            "email": data.get('client_email'),
+            "mobile": data.get('client_mobile')
+        }
+        
         particulars = data.get('particulars', [])
         if isinstance(particulars, list): particulars = [str(p).strip() for p in particulars]
         else: particulars = [str(particulars).strip()]
@@ -815,7 +931,6 @@ def handle_invoice():
             existing_inv = next((i for i in invoices if i['bill_no'] == bill_no_to_check), None)
             
             if existing_inv:
-                # Check timestamp
                 ts_str = existing_inv.get('timestamp')
                 if ts_str:
                     try:
@@ -824,8 +939,6 @@ def handle_invoice():
                             return jsonify({"error": "Edit window (24 hours) has expired for this invoice."}), 403
                     except: pass 
                 else:
-                    # Optional: If legacy invoice has no timestamp, assume expired or allow.
-                    # Here we default to allowing ONLY if date is today, else block for safety.
                     today_str = date.today().strftime('%d-%b-%Y')
                     if existing_inv.get('invoice_date') != today_str:
                          return jsonify({"error": "Cannot edit old invoices without timestamp."}), 403
@@ -839,13 +952,8 @@ def handle_invoice():
                 save_single_particular(storage_key, {"hsn": hsn_val, "rate": rate_val, "taxrate": tax_val})
 
         if client_name:
-            save_single_client(client_name, {
-                "address1": data.get('client_address1',''),
-                "address2": data.get('client_address2',''),
-                "gstin": data.get('client_gstin',''),
-                "email": data.get('client_email',''),
-                "mobile": data.get('client_mobile','')
-            })
+            # Flatten for save
+            save_single_client(client_name, client_details)
 
         auto_generate = data.get("auto_generate", True)
         if auto_generate:
@@ -856,8 +964,6 @@ def handle_invoice():
             invoice_date_str = date.today().strftime('%d-%b-%Y')
         else:
             bill_no = str(data.get("manual_bill_no","")).strip()
-            
-            # Check for duplicates ONLY if not editing
             if not is_edit:
                 invoices = load_invoices()
                 if any(inv['bill_no']==bill_no for inv in invoices): 
@@ -896,20 +1002,31 @@ def handle_invoice():
         invoice_data = {
             "bill_no": bill_no,
             "invoice_date": invoice_date_str,
-            "timestamp": datetime.now().isoformat(), # SAVE TIMESTAMP FOR 24H EDIT RULE
+            "timestamp": datetime.now().isoformat(),
             "is_non_gst": is_non_gst,
             "client_name": client_name,
-            "client_address1": data.get('client_address1'),
-            "client_address2": data.get('client_address2'),
-            "client_gstin": data.get('client_gstin'),
-            "client_email": data.get('client_email'),
-            "client_mobile": data.get('client_mobile'),
+            
+            # Expanded Client Details
+            "client_address1": client_details['address1'],
+            "client_address2": client_details['address2'],
+            "client_pincode": client_details['pincode'],
+            "client_district": client_details['district'],
+            "client_state": client_details['state'],
+            "client_gstin": client_details['gstin'],
+            "client_email": client_details['email'],
+            "client_mobile": client_details['mobile'],
+            
+            # Ship To Details
             "shipto_name": data.get('shipto_name'),
             "shipto_address1": data.get('shipto_address1'),
             "shipto_address2": data.get('shipto_address2'),
+            "shipto_pincode": data.get('shipto_pincode'),
+            "shipto_district": data.get('shipto_district'),
+            "shipto_state": data.get('shipto_state'),
             "shipto_gstin": data.get('shipto_gstin'),
             "shipto_email": data.get('shipto_email'),
             "shipto_mobile": data.get('shipto_mobile'),
+            
             "po_number": data.get('po_number'),
             "my_gstin": my_gstin,
             "particulars": particulars,
@@ -1097,7 +1214,6 @@ def generate_credit_note(bill_no):
 @login_required
 def download_excel_report():
     try:
-        # Re-use the exact same logic helper for consistency
         excel_bytes = generate_excel_bytes(session.get('view_mode', current_user.id))
         if not excel_bytes:
              return "No invoice data found to generate report.", 404
@@ -1105,6 +1221,67 @@ def download_excel_report():
         return send_file(excel_bytes, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', as_attachment=True, download_name=f'Sales_Report_{date.today()}.xlsx')
     except Exception as e:
         return f"Error generating report: {str(e)}", 500
+
+@app.route('/download-gstr1')
+@login_required
+def download_gstr1():
+    try:
+        wb = Workbook()
+        
+        # B2B SHEET
+        ws_b2b = wb.active
+        ws_b2b.title = "B2B"
+        ws_b2b.append([
+            "GSTIN/UIN of Recipient", "Invoice Number", "Invoice Date", "Invoice Value",
+            "Place Of Supply", "Reverse Charge", "Invoice Type", "E-Commerce GSTIN",
+            "Rate", "Taxable Value", "Cess Amount"
+        ])
+
+        # B2CL SHEET (Large)
+        ws_b2cl = wb.create_sheet("B2CL")
+        ws_b2cl.append(["Invoice Number", "Invoice Date", "Invoice Value", "Place Of Supply", "Rate", "Taxable Value", "Cess Amount", "E-Commerce GSTIN"])
+
+        # B2CS SHEET (Small)
+        ws_b2cs = wb.create_sheet("B2CS")
+        ws_b2cs.append(["Type", "Place Of Supply", "Rate", "Taxable Value", "Cess Amount", "E-Commerce GSTIN"])
+
+        invoices = load_invoices_for_user(session.get('view_mode', current_user.id))
+        
+        for inv in invoices:
+            gstin = inv.get('client_gstin', '').strip()
+            state_name = inv.get('client_state', '')
+            state_code = STATE_CODES.get(state_name, "")
+            pos = f"{state_code}-{state_name}" if state_code else state_name
+            
+            inv_no = inv.get('bill_no')
+            inv_date = inv.get('invoice_date')
+            inv_val = inv.get('grand_total')
+            
+            tax_groups = {}
+            for i in range(len(inv.get('rates', []))):
+                rate = float(inv['taxrates'][i])
+                taxable = float(inv['amounts'][i])
+                if rate not in tax_groups: tax_groups[rate] = 0
+                tax_groups[rate] += taxable
+
+            if gstin and len(gstin) > 5:
+                # B2B
+                for rate, taxable in tax_groups.items():
+                    ws_b2b.append([gstin, inv_no, inv_date, inv_val, pos, "N", "Regular", "", rate, taxable, 0])
+            else:
+                # B2C
+                # Check for B2CL (> 2.5L and Interstate) logic can be added here
+                # Defaulting to B2CS for simplicity
+                for rate, taxable in tax_groups.items():
+                    ws_b2cs.append(["OE", pos, rate, taxable, 0, ""])
+
+        out = io.BytesIO()
+        wb.save(out)
+        out.seek(0)
+        return send_file(out, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', as_attachment=True, download_name=f'GSTR1_Report_{date.today()}.xlsx')
+
+    except Exception as e:
+        return f"Error: {e}", 500
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=int(os.getenv("PORT",5000)))
