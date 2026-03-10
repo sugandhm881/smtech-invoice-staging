@@ -29,6 +29,7 @@ load_dotenv()
 # --- FIREBASE SETUP ---
 import firebase_admin
 from firebase_admin import credentials, firestore
+from google.cloud.firestore import Transaction  # REQUIRED FOR STRICT INVENTORY ERP
 
 if not firebase_admin._apps:
     firebase_creds_env = os.getenv("FIREBASE_CREDENTIALS")
@@ -94,27 +95,33 @@ MASTER_USERNAME = os.getenv("LOGIN_USER", "admin")
 MASTER_PASSWORD = os.getenv("LOGIN_PASS", "password")
 
 class User(UserMixin):
-    def __init__(self, id, is_master=False, payment_active=True):
+    def __init__(self, id, is_master=False, payment_active=True, permissions=None):
         self.id = id
         self.is_master = is_master
-        # payment_active determines if they can access the dashboard.
         self.payment_active = payment_active
+        # Default to both if not specified
+        self.permissions = permissions if permissions else ['sale', 'purchase']
 
     @property
     def is_active(self):
         return True
+    
+    def has_permission(self, perm):
+        if self.is_master: return True
+        return perm in self.permissions
 
 @login_manager.user_loader
 def load_user(user_id):
     if user_id == MASTER_USERNAME:
-        return User(user_id, is_master=True, payment_active=True)
+        return User(user_id, is_master=True, payment_active=True, permissions=['sale', 'purchase'])
     
     try:
         user_doc = db.collection('app_users').document(user_id).get()
         if user_doc.exists:
             data = user_doc.to_dict()
             db_active_status = data.get('is_active', False)
-            return User(user_id, is_master=False, payment_active=db_active_status)
+            perms = data.get('permissions', ['sale', 'purchase'])
+            return User(user_id, is_master=False, payment_active=db_active_status, permissions=perms)
     except: pass
     return None
 
@@ -145,19 +152,14 @@ def send_email_raw(to_email, subject, body):
         logging.error(f"Email Error: {e}")
         return False
 
-# --- IMPROVED IMAGE COMPRESSION ---
 def compress_image(file_storage, max_width=400):
     try:
         img = Image.open(file_storage)
-        
-        # Resize logic
         width_percent = (max_width / float(img.size[0]))
         if width_percent < 1:
             new_height = int((float(img.size[1]) * float(width_percent)))
             img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
         
-        # Convert all images to RGBA/RGB and save as PNG to ensure FPDF compatibility
-        # This fixes the issue where JPEGs saved as .png caused errors
         if img.mode not in ('RGBA', 'RGB', 'L'):
             img = img.convert('RGBA')
             
@@ -238,20 +240,61 @@ def save_single_client(name, data):
     base = get_db_base()
     base.collection('clients').document(name).set(data, merge=True)
 
+# --- COLLECTION SEPARATION LOGIC ---
+def get_collection_name(data):
+    cat = data.get('doc_category', 'sale')
+    dtype = data.get('doc_type', 'invoice')
+    is_cn = data.get('is_credit_note', False)
+    is_dn = data.get('is_debit_note', False)
+    
+    if cat == 'purchase':
+        if is_dn: return 'purchase_debit_notes'
+        if dtype == 'po': return 'purchase_orders'
+        if dtype == 'grn': return 'purchase_grns'
+        if dtype == 'bill': return 'purchase_bills'
+        return 'purchase_misc'
+    else:
+        if is_cn: return 'sales_credit_notes'
+        if is_dn: return 'sales_debit_notes'
+        return 'sales_invoices'
+
 def load_invoices_for_user(target_user_id):
     base = get_db_base(target_user=target_user_id)
-    docs = base.collection('invoices').stream()
-    return [doc.to_dict() for doc in docs]
+    collections = [
+        'sales_invoices', 'sales_credit_notes', 'sales_debit_notes', 
+        'purchase_orders', 'purchase_grns', 'purchase_bills', 'purchase_debit_notes', 
+        'invoices' # Legacy support
+    ]
+    all_docs = []
+    for c_name in collections:
+        try:
+            docs = base.collection(c_name).stream()
+            for d in docs:
+                all_docs.append(d.to_dict())
+        except: pass
+    return all_docs
 
 def load_invoices():
     base = get_db_base()
-    docs = base.collection('invoices').stream()
-    return [doc.to_dict() for doc in docs]
+    collections = [
+        'sales_invoices', 'sales_credit_notes', 'sales_debit_notes', 
+        'purchase_orders', 'purchase_grns', 'purchase_bills', 'purchase_debit_notes', 
+        'invoices'
+    ]
+    all_docs = []
+    for c_name in collections:
+        try:
+            docs = base.collection(c_name).stream()
+            for d in docs:
+                all_docs.append(d.to_dict())
+        except: pass
+    return all_docs
 
 def save_single_invoice(invoice_data):
     base = get_db_base()
+    collection_name = get_collection_name(invoice_data)
     doc_id = invoice_data['bill_no'].replace('/', '_')
-    base.collection('invoices').document(doc_id).set(invoice_data)
+    base.collection(collection_name).document(doc_id).set(invoice_data)
 
 def load_particulars():
     base = get_db_base()
@@ -262,22 +305,34 @@ def save_single_particular(name, data):
     base = get_db_base()
     base.collection('particulars').document(name).set(data, merge=True)
 
-def get_next_counter(is_credit_note=False):
+def get_next_counter(is_credit_note=False, is_debit_note=False, is_purchase=False, doc_type='invoice'):
     base = get_db_base()
     doc_ref = base.collection('config').document('counters')
     @firestore.transactional
     def update_in_transaction(transaction, doc_ref):
         snapshot = doc_ref.get(transaction=transaction)
         if not snapshot.exists:
-            new_data = {"counter": 0, "cn_counter": 0}
+            new_data = {"counter": 0, "cn_counter": 0, "dn_counter": 0, "po_counter": 0, "grn_counter": 0, "pb_counter": 0, "pdn_counter": 0}
             transaction.set(doc_ref, new_data)
             current_val = 0
+            current_data = new_data
         else:
             current_data = snapshot.to_dict()
-            field = "cn_counter" if is_credit_note else "counter"
-            current_val = current_data.get(field, 0)
+
+        if is_purchase:
+            if is_debit_note: field = "pdn_counter"
+            elif doc_type == 'po': field = "po_counter"
+            elif doc_type == 'grn': field = "grn_counter"
+            elif doc_type == 'bill': field = "pb_counter"
+            else: field = "po_counter" 
+        else:
+            if is_credit_note: field = "cn_counter"
+            elif is_debit_note: field = "dn_counter"
+            else: field = "counter" 
+            
+        current_val = current_data.get(field, 0)
         new_val = current_val + 1
-        field = "cn_counter" if is_credit_note else "counter"
+        
         transaction.update(doc_ref, {field: new_val})
         return new_val
     return update_in_transaction(db.transaction(), doc_ref)
@@ -331,7 +386,7 @@ def send_email_with_attachment(to_email, subject, body, attachment_bytes, filena
         server.login(EMAIL_USER, EMAIL_PASSWORD)
         server.send_message(msg)
 
-def PDF_Generator(invoice_data, is_credit_note=False):
+def PDF_Generator(invoice_data, is_credit_note=False, is_debit_note=False):
     pdf = FPDF()
     pdf.add_page()
     pdf.add_font("Calibri", "", CALIBRI_FONT_PATH, uni=True)
@@ -344,131 +399,154 @@ def PDF_Generator(invoice_data, is_credit_note=False):
     col_width = (page_width / 2) - 5 
     line_height = 5 
     
-    # --- LOGO RENDER ---
+    # --- LOGO HANDLING ---
     logo_data = profile.get('logo_base64')
     if logo_data:
         try:
+            if "," in logo_data:
+                logo_data = logo_data.split(",")[1]
+            
+            img_bytes = base64.b64decode(logo_data)
             with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
-                tmp.write(base64.b64decode(logo_data))
+                with Image.open(io.BytesIO(img_bytes)) as pil_img:
+                    pil_img.save(tmp, format="PNG")
                 tmp_path = tmp.name
+            
             pdf.image(tmp_path, x=15, y=8, w=30)
             os.unlink(tmp_path)
         except Exception as e:
             logging.error(f"Logo Error: {e}")
+            if os.path.exists(DEFAULT_LOGO):
+                pdf.image(DEFAULT_LOGO, x=15, y=8, w=30)
     elif os.path.exists(DEFAULT_LOGO):
         pdf.image(DEFAULT_LOGO, x=15, y=8, w=30)
     
-    # --- HEADER ---
     pdf.set_font("Calibri", "B", 22)
     is_non_gst = invoice_data.get('is_non_gst', False)
     
-    if is_credit_note:
-        pdf.set_text_color(220, 38, 38) # Red
-        header_title = "CREDIT NOTE"
-    elif is_non_gst:
-        pdf.set_text_color(0, 128, 0) # Green
-        header_title = "BILL OF SUPPLY"
+    doc_category = invoice_data.get('doc_category', 'sale')
+    doc_type = invoice_data.get('doc_type', 'invoice')
+
+    # --- DYNAMIC HEADERS ---
+    if doc_category == 'purchase':
+        if is_debit_note:
+            pdf.set_text_color(0, 51, 102) 
+            header_title = "DEBIT NOTE (PURCHASE)"
+        elif doc_type == 'po':
+            pdf.set_text_color(0, 51, 102) 
+            header_title = "PURCHASE ORDER"
+        elif doc_type == 'grn':
+            pdf.set_text_color(0, 100, 0) 
+            header_title = "GOODS RECEIPT NOTE"
+        elif doc_type == 'bill':
+            pdf.set_text_color(50, 50, 50) 
+            header_title = "PURCHASE BILL"
+        else:
+            header_title = "PURCHASE DOC"
     else:
-        pdf.set_text_color(255, 165, 0) # Orange
-        header_title = "TAX INVOICE"
+        if is_credit_note:
+            pdf.set_text_color(220, 38, 38) 
+            header_title = "CREDIT NOTE"
+        elif is_debit_note:
+            pdf.set_text_color(0, 51, 102)
+            header_title = "DEBIT NOTE"
+        elif is_non_gst:
+            pdf.set_text_color(0, 128, 0) 
+            header_title = "BILL OF SUPPLY"
+        else:
+            pdf.set_text_color(255, 165, 0) 
+            header_title = "TAX INVOICE"
 
     pdf.cell(page_width, 10, profile.get('company_name', 'SM Tech'), ln=True, align='C')
     pdf.set_font("Calibri", "B", 14)
     pdf.set_text_color(0, 0, 0)
     pdf.cell(page_width, 8, header_title, ln=True, align='C')
-    
-    # --- SELLER DETAILS ---
     pdf.set_font("Calibri", "", 10)
+    
     my_gstin = profile.get('gstin', '')
     address_str = f"{profile.get('address_1','')}\n{profile.get('address_2','')}\nPhone: {profile.get('phone','')} | E-mail: {profile.get('email','')}\nGSTIN: {my_gstin}"
     pdf.multi_cell(page_width, line_height, address_str, align='C')
     pdf.ln(5)
     pdf.line(margin, pdf.get_y(), pdf.w - margin, pdf.get_y())
 
-    # --- CREDIT NOTE REF ---
-    if is_credit_note:
+    if is_credit_note or is_debit_note:
         pdf.ln(3)
         pdf.set_font("Calibri", "B", 11)
-        pdf.set_text_color(220, 38, 38)
+        if is_credit_note: pdf.set_text_color(220, 38, 38)
+        else: pdf.set_text_color(0, 51, 102)
+            
         ref_bill = invoice_data.get('original_invoice_no', '')
         if not ref_bill:
-             ref_bill = invoice_data.get('bill_no', '').replace('CN-', '').replace('TE-CN', 'TE')
-        pdf.cell(0, 7, f"This is a credit note against Invoice No: {ref_bill}", ln=True, align='C')
+             ref_bill = invoice_data.get('bill_no', '').replace('CN-', '').replace('DN-', '').replace('TE-CN', 'TE').replace('TE-DN', 'TE')
+        pdf.cell(0, 7, f"Ref Invoice No: {ref_bill}", ln=True, align='C')
         pdf.set_text_color(0, 0, 0)
+    
     pdf.ln(5)
 
-    # --- ADDRESS FORMATTING HELPERS ---
     def format_address(prefix):
         addr_lines = [
             invoice_data.get(f'{prefix}_name',''),
             invoice_data.get(f'{prefix}_address1',''),
             invoice_data.get(f'{prefix}_address2',''),
-            f"{invoice_data.get(f'{prefix}_district','')} - {invoice_data.get(f'{prefix}_pincode','')}",
+            f"{invoice_data.get(f'{prefix}_district','')} - {invoice_data.get(f'{prefix}_pincode','')}" if invoice_data.get(f'{prefix}_pincode','') else invoice_data.get(f'{prefix}_district',''),
             f"{invoice_data.get(f'{prefix}_state','')}",
-            f"GSTIN: {invoice_data.get(f'{prefix}_gstin','')}",
-            f"Mobile: {invoice_data.get(f'{prefix}_mobile','')}"
+            f"GSTIN: {invoice_data.get(f'{prefix}_gstin','')}" if invoice_data.get(f'{prefix}_gstin','') else "",
+            f"Mobile: {invoice_data.get(f'{prefix}_mobile','')}" if invoice_data.get(f'{prefix}_mobile','') else ""
         ]
-        # Filter empty lines
         return "\n".join([line for line in addr_lines if line and line.strip() != '-' and line.strip() != ''])
 
     bill_to_text = format_address('client')
     ship_to_text = format_address('shipto')
     
-    invoice_no_text = f"{header_title} No: {invoice_data.get('bill_no','')}"
+    label_bill_to = "Bill To:"
+    label_ship_to = "Ship To:"
+    label_doc_no = f"{header_title} No:"
+    
+    if doc_category == 'purchase':
+        if is_debit_note:
+            label_bill_to = "To (Vendor):"
+            label_ship_to = "Reference Details:"
+        else:
+            label_bill_to = "Vendor Details:"
+            label_ship_to = "Ship To (Our Warehouse):"
+    
+    invoice_no_text = f"{label_doc_no} {invoice_data.get('bill_no','')}"
     invoice_date_text = f"Date: {invoice_data.get('invoice_date','')}"
     po_number_text = f"PO Number: {invoice_data.get('po_number','')}"
 
     y_start = pdf.get_y()
     pdf.set_font("Calibri", "B", 12)
-    pdf.cell(col_width, line_height, "Bill To:", ln=True)
+    pdf.cell(col_width, line_height, label_bill_to, ln=True)
     pdf.set_font("Calibri", "", 10)
     pdf.multi_cell(col_width, line_height, bill_to_text)
-    
     y_left = pdf.get_y()
     pdf.set_y(y_start)
     pdf.set_x(margin + col_width + 10)
-    
     pdf.set_font("Calibri", "B", 10)
     pdf.multi_cell(col_width, line_height, f"{invoice_no_text}\n{invoice_date_text}")
-    
     y_right = pdf.get_y()
     pdf.set_y(max(y_left, y_right))
     pdf.ln(5) 
     
     y_start = pdf.get_y()
     pdf.set_font("Calibri", "B", 12)
-    pdf.cell(col_width, line_height, "Ship To:", ln=True)
+    pdf.cell(col_width, line_height, label_ship_to, ln=True)
     pdf.set_font("Calibri", "", 10)
     pdf.multi_cell(col_width, line_height, ship_to_text)
-    
     y_left = pdf.get_y()
     pdf.set_y(y_start)
     pdf.set_x(margin + col_width + 10)
-    
     pdf.set_font("Calibri", "B", 10)
     pdf.multi_cell(col_width, line_height, po_number_text)
-    
     y_right = pdf.get_y()
     pdf.set_y(max(y_left, y_right))
     pdf.ln(10) 
     
-    # --- TABLE CONFIGURATION (Refined Widths) ---
-    # Total Width available: 180mm
-    # Particulars: 50 | HSN: 15 | Qty: 12 | Rate: 20 | Tax%: 13 | Taxable: 25 | TaxAmt: 20 | Total: 25
-    # Sum: 50+15+12+20+13+25+20+25 = 180
-    
-    particulars_w = 50
-    hsn_w = 15
-    qty_w = 12
-    rate_w = 20
-    tax_percent_w = 13
-    taxable_amt_w = 25
-    tax_amt_w = 20
-    total_w = 25
+    particulars_w, hsn_w, qty_w, rate_w, tax_percent_w, taxable_amt_w, tax_amt_w, total_w = 50, 15, 12, 20, 13, 25, 20, 25
+    pdf.set_fill_color(255, 204, 153)
+    if doc_category == 'purchase': pdf.set_fill_color(200, 220, 255)
 
-    # --- TABLE HEADER ---
-    pdf.set_fill_color(255, 204, 153) # Light Orange
-    pdf.set_font("Calibri", "B", 9) # Slightly smaller font for better fit
+    pdf.set_font("Calibri", "B", 9)
     pdf.cell(particulars_w, 8, "Particulars", 1, 0, 'L', True)
     pdf.cell(hsn_w, 8, "HSN", 1, 0, 'C', True)
     pdf.cell(qty_w, 8, "Qty", 1, 0, 'C', True)
@@ -478,7 +556,6 @@ def PDF_Generator(invoice_data, is_credit_note=False):
     pdf.cell(tax_amt_w, 8, "Tax Amt", 1, 0, 'R', True)
     pdf.cell(total_w, 8, "Total", 1, 1, 'R', True)
 
-    # --- TABLE ROWS ---
     pdf.set_font("Calibri", "", 9)
     particulars = invoice_data.get('particulars', [])
     hsns = invoice_data.get('hsns', [])
@@ -493,24 +570,18 @@ def PDF_Generator(invoice_data, is_credit_note=False):
 
     for i in range(len(particulars)):
         start_y, start_x = pdf.get_y(), pdf.get_x()
-        
-        # Multi-cell for Particulars (Auto Wrap)
         pdf.multi_cell(particulars_w, 7, str(particulars[i]), 0, 'L')
         y_after = pdf.get_y()
         row_h = y_after - start_y
-        
-        # Reset position to next column
         pdf.set_xy(start_x + particulars_w, start_y)
         
-        # Qty Calc
         qty_val = float(qtys[i]) if i < len(qtys) else 0
         total_qty_calc += abs(qty_val)
-        qty_str = str(int(abs(qty_val))) # No Decimal
+        qty_str = str(int(abs(qty_val))) if qty_val.is_integer() else str(abs(qty_val))
 
-        # Tax % Format (No Decimal)
         try:
             tax_p = float(taxrates[i])
-            tax_str = f"{tax_p:.0f}%" 
+            tax_str = f"{tax_p:.0f}%" if tax_p.is_integer() else f"{tax_p}%"
         except: tax_str = "0%"
 
         display_hsn = "" if is_non_gst else (str(hsns[i]) if i < len(hsns) else '')
@@ -523,26 +594,20 @@ def PDF_Generator(invoice_data, is_credit_note=False):
         pdf.cell(tax_amt_w, row_h, f"{abs(float(line_tax_amounts[i])):.2f}", 1, 0, 'R')
         pdf.cell(total_w, row_h, f"{abs(float(line_total_amounts[i])):.2f}", 1, 0, 'R')
         
-        # Border for particulars (using rect because multi_cell doesn't draw full height border automatically in complex layouts)
         pdf.rect(start_x, start_y, particulars_w, row_h)
         pdf.set_y(y_after)
 
-    # --- TOTAL QTY ROW ---
     pdf.set_font("Calibri", "B", 9)
-    pdf.set_fill_color(230, 230, 230)
-    
-    # Label
+    pdf.set_fill_color(240, 240, 240)
     pdf.cell(particulars_w + hsn_w, 7, "Total Quantity:", 1, 0, 'R', True)
-    # Value
-    pdf.cell(qty_w, 7, str(int(total_qty_calc)), 1, 0, 'C', True)
-    # Fill rest
+    pdf.cell(qty_w, 7, f"{total_qty_calc:g}", 1, 0, 'C', True)
     remaining_w = page_width - (particulars_w + hsn_w + qty_w)
     pdf.cell(remaining_w, 7, "", 1, 1, 'R', True)
     
-    # --- TOTALS ---
+    pdf.set_fill_color(230, 230, 230)
     def add_total(label, val):
-        pdf.cell(150, 7, label, 1, 0, 'R', True) # 150 covers most cols
-        pdf.cell(30, 7, f"{abs(val):.2f}", 1, 1, 'R', True) # Aligns with Total
+        pdf.cell(135, 7, label, 1, 0, 'R', True) 
+        pdf.cell(45, 7, f"{abs(val):.2f}", 1, 1, 'R', True) 
     
     add_total("Sub Total", invoice_data.get('sub_total',0))
     add_total("IGST", invoice_data.get('igst',0))
@@ -551,7 +616,6 @@ def PDF_Generator(invoice_data, is_credit_note=False):
     add_total("Grand Total", invoice_data.get('grand_total',0))
     pdf.ln(10)
 
-    # --- FOOTER & BANK ---
     pdf.set_font("Calibri", "", 10)
     bank_text = f"Rupees: {convert_to_words(invoice_data.get('grand_total',0))}\nBank Name: {profile.get('bank_name','')}\nAccount Holder: {profile.get('account_holder','')}\nAccount No: {profile.get('account_no','')}\nIFSC: {profile.get('ifsc','')}"
     pdf.multi_cell(page_width, line_height, bank_text)
@@ -560,17 +624,24 @@ def PDF_Generator(invoice_data, is_credit_note=False):
     pdf.set_font("Calibri", "B", 10)
     pdf.cell(0, 5, f"For {profile.get('company_name', 'SM Tech')}", ln=True, align='R')
 
-    # --- SIGNATURE RENDER ---
     sig_data = profile.get('signature_base64')
     if sig_data:
         try:
+            if "," in sig_data:
+                sig_data = sig_data.split(",")[1]
+            
+            sig_bytes = base64.b64decode(sig_data)
             with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
-                tmp.write(base64.b64decode(sig_data))
+                with Image.open(io.BytesIO(sig_bytes)) as pil_img:
+                    pil_img.save(tmp, format="PNG")
                 tmp_path = tmp.name
+            
             pdf.image(tmp_path, x=pdf.w - margin - 40, y=pdf.get_y(), w=40)
             os.unlink(tmp_path)
         except Exception as e:
             logging.error(f"Signature Error: {e}")
+            if os.path.exists(DEFAULT_SIGNATURE):
+                pdf.image(DEFAULT_SIGNATURE, x=pdf.w - margin - 40, y=pdf.get_y(), w=40)
     elif os.path.exists(DEFAULT_SIGNATURE):
         pdf.image(DEFAULT_SIGNATURE, x=pdf.w - margin - 40, y=pdf.get_y(), w=40) 
     
@@ -587,9 +658,9 @@ def generate_excel_bytes(user_id):
     ws.title = "Sales Register"
     
     ws.append([
-        "Invoice Date", "Bill No", "Client Name", "Client GSTIN", 
+        "Invoice Date", "Bill No", "Client/Vendor Name", "GSTIN", 
         "Item Name", "HSN", "Qty", "Rate (Incl Tax)", 
-        "GST %", "Taxable Value", "Tax Amount", "Line Total", "Doc Type"
+        "GST %", "Taxable Value", "Tax Amount", "Line Total", "Doc Type", "Category"
     ])
     
     for inv in invoices:
@@ -601,11 +672,22 @@ def generate_excel_bytes(user_id):
         taxable_list = inv.get('amounts', []) 
         tax_amt_list = inv.get('line_tax_amounts', [])
         total_list = inv.get('line_total_amounts', [])
+        
+        doc_cat = inv.get('doc_category', 'sale')
+        d_type = inv.get('doc_type', 'invoice')
+        display_type = "Tax Invoice"
+        
+        if doc_cat == 'purchase':
+            if d_type == 'po': display_type = "Purchase Order"
+            elif d_type == 'grn': display_type = "GRN"
+            elif d_type == 'bill': display_type = "Purchase Bill"
+            elif inv.get('is_debit_note') or d_type == 'dn': display_type = "Debit Note (Purchase)"
+        else:
+            if inv.get('is_credit_note') or d_type == 'cn': display_type = "Credit Note"
+            elif inv.get('is_debit_note') or d_type == 'dn': display_type = "Debit Note"
+            elif inv.get('is_non_gst'): display_type = "Bill of Supply"
+
         for i in range(len(part_list)):
-            doc_type = "Tax Invoice"
-            if inv.get('is_credit_note'): doc_type = "Credit Note"
-            elif inv.get('is_non_gst'): doc_type = "Bill of Supply"
-            
             ws.append([
                 inv.get('invoice_date'),
                 inv.get('bill_no'),
@@ -619,7 +701,8 @@ def generate_excel_bytes(user_id):
                 float(taxable_list[i]) if i < len(taxable_list) else 0,
                 float(tax_amt_list[i]) if i < len(tax_amt_list) else 0,
                 float(total_list[i]) if i < len(total_list) else 0,
-                doc_type
+                display_type,
+                doc_cat.upper()
             ])
 
     output = io.BytesIO()
@@ -628,11 +711,6 @@ def generate_excel_bytes(user_id):
     return output
 
 # ------------------ ROUTES ------------------
-
-@app.route("/", methods=["GET"])
-def root():
-    if current_user.is_authenticated: return redirect(url_for("home"))
-    return redirect(url_for("login"))
 
 @app.route("/login", methods=["GET","POST"])
 def login():
@@ -686,13 +764,15 @@ def verify_otp():
         is_master = session['temp_is_master']
         
         payment_active = True
+        perms = ['sale', 'purchase']
         if not is_master:
             try:
                 u_doc = db.collection('app_users').document(user_id).get()
                 payment_active = u_doc.to_dict().get('is_active', False)
+                perms = u_doc.to_dict().get('permissions', ['sale', 'purchase'])
             except: payment_active = False
         
-        user_obj = User(user_id, is_master=is_master, payment_active=payment_active)
+        user_obj = User(user_id, is_master=is_master, payment_active=payment_active, permissions=perms)
 
         login_user(user_obj)
         
@@ -775,6 +855,11 @@ def get_branding(username):
 def home():
     return render_template("index.html")
 
+@app.route("/", methods=["GET"])
+def root_redirect():
+    if current_user.is_authenticated: return redirect(url_for("dashboard"))
+    return redirect(url_for("login"))
+
 @app.route("/logout")
 @login_required
 def logout():
@@ -804,17 +889,20 @@ def user_profile():
         profile_data = get_seller_profile_data(target_user_id=target_user)
         
         target_is_active = True
+        target_perms = ['sale', 'purchase']
         if target_user != MASTER_USERNAME:
              try:
                  u = db.collection('app_users').document(target_user).get()
-                 target_is_active = u.to_dict().get('is_active', False)
+                 d = u.to_dict()
+                 target_is_active = d.get('is_active', False)
+                 target_perms = d.get('permissions', ['sale', 'purchase'])
              except: pass
         
         all_requests = []
         if current_user.is_master:
             all_requests = get_all_activation_requests()
 
-        return render_template('user_profile.html', profile=profile_data, target_user=target_user, target_is_active=target_is_active, pending_requests=all_requests)
+        return render_template('user_profile.html', profile=profile_data, target_user=target_user, target_is_active=target_is_active, target_perms=target_perms, pending_requests=all_requests)
 
     if request.method == 'POST':
         if 'verify_request' in request.form:
@@ -828,6 +916,20 @@ def user_profile():
             flash(f"Payment Verified! User {user_to_activate} is now Active.", "success")
             return redirect(url_for('user_profile'))
 
+        if 'update_perms' in request.form:
+             if not current_user.is_master: return "Unauthorized", 403
+             target = request.form.get('target_user_id')
+             perm_sale = request.form.get('perm_sale')
+             perm_purchase = request.form.get('perm_purchase')
+             
+             new_perms = []
+             if perm_sale: new_perms.append('sale')
+             if perm_purchase: new_perms.append('purchase')
+             
+             db.collection('app_users').document(target).set({"permissions": new_perms}, merge=True)
+             flash(f"Permissions for {target} updated!", "success")
+             return redirect(url_for('user_profile', edit_user=target))
+
         if 'toggle_active' in request.form:
              if not current_user.is_master: return "Unauthorized", 403
              target = request.form.get('target_user_id')
@@ -840,19 +942,21 @@ def user_profile():
             if not current_user.is_master: return "Unauthorized", 403
             new_u = request.form.get('new_username')
             new_p = request.form.get('new_password')
+            
+            perm_sale = request.form.get('new_perm_sale')
+            perm_purchase = request.form.get('new_perm_purchase')
+            new_perms = []
+            if perm_sale: new_perms.append('sale')
+            if perm_purchase: new_perms.append('purchase')
+            
             if new_u and new_p:
-                db.collection('app_users').document(new_u).set({"password": new_p, "is_active": False})
+                db.collection('app_users').document(new_u).set({
+                    "password": new_p, 
+                    "is_active": False,
+                    "permissions": new_perms
+                })
                 flash(f"User {new_u} created! (Inactive by default)", "success")
             return redirect(url_for('user_profile'))
-
-        if 'action_reset_pass' in request.form:
-            if not current_user.is_master: return "Unauthorized", 403
-            target = request.form.get('target_user_id')
-            new_pass = request.form.get('reset_password')
-            if target and new_pass:
-                db.collection('app_users').document(target).set({"password": new_pass}, merge=True)
-                flash(f"Password for {target} updated successfully.", "success")
-            return redirect(url_for('user_profile', edit_user=target))
 
         target_user = request.form.get('target_user_id')
         if not current_user.is_master:
@@ -893,13 +997,39 @@ def user_profile():
         flash(f'Profile for {target_user} Updated!', 'success')
         return redirect(url_for('user_profile', edit_user=target_user))
 
+
+# ------------------ GENERATE INVOICE (STRICT ERP LOGIC) ------------------
 @app.route("/generate-invoice", methods=["POST"])
 @login_required
 def handle_invoice():
     try:
         data = request.json or {}
+        
+        # --- 1. STRICT TYPE EXTRACTION ---
+        doc_category = data.get('doc_category', 'sale') 
+        doc_type = data.get('doc_type', 'invoice') 
+        
+        # --- 2. PERMISSION & RULE CHECK ---
+        if not current_user.has_permission(doc_category):
+             return jsonify({"error": f"You do not have permission for {doc_category} operations."}), 403
+
+        # STRICT ERP RULES
+        if doc_category == 'sale':
+            if doc_type == 'dn':
+                 return jsonify({"error": "RULE: Sales Debit Notes are not allowed in this system."}), 400
+            if doc_type == 'cn' and not data.get('original_invoice_no') and not data.get('manual_bill_no'):
+                 pass 
+
+        if doc_category == 'purchase':
+            if doc_type == 'cn':
+                 return jsonify({"error": "RULE: Purchase Credit Notes are not allowed. Use Debit Note for Vendor Returns."}), 400
+
+        # --- 3. DATA PREPARATION ---
         is_edit = data.get('is_edit', False)
         is_non_gst = data.get('is_non_gst', False)
+        
+        is_debit_note = (doc_type == 'dn')
+        is_credit_note = (doc_type == 'cn')
         
         # CLIENT DETAILS
         client_name = data.get('client_name','').strip()
@@ -924,7 +1054,7 @@ def handle_invoice():
         hsns = data.get('hsns', [])
         amounts_inclusive = data.get("amounts", [])
 
-        # --- 24-HOUR EDIT CHECK (Backend Security) ---
+        # --- 4. 24-HOUR EDIT CHECK ---
         if is_edit:
             bill_no_to_check = str(data.get("manual_bill_no","")).strip()
             invoices = load_invoices()
@@ -938,11 +1068,8 @@ def handle_invoice():
                         if datetime.now() - created_at > timedelta(hours=24):
                             return jsonify({"error": "Edit window (24 hours) has expired for this invoice."}), 403
                     except: pass 
-                else:
-                    today_str = date.today().strftime('%d-%b-%Y')
-                    if existing_inv.get('invoice_date') != today_str:
-                         return jsonify({"error": "Cannot edit old invoices without timestamp."}), 403
 
+        # --- 5. SAVE MASTERS (Clients/Particulars) ---
         for i, item_name in enumerate(particulars):
             if item_name:
                 storage_key = f"{item_name}_NONGST" if is_non_gst else item_name
@@ -952,26 +1079,54 @@ def handle_invoice():
                 save_single_particular(storage_key, {"hsn": hsn_val, "rate": rate_val, "taxrate": tax_val})
 
         if client_name:
-            # Flatten for save
             save_single_client(client_name, client_details)
 
+        # --- 6. GENERATE BILL NUMBER ---
         auto_generate = data.get("auto_generate", True)
         if auto_generate:
-            counter = get_next_counter(is_credit_note=False)
             profile = get_seller_profile_data()
             prefix = profile.get('invoice_prefix', 'TE').upper()
-            bill_no = f"{prefix}/2025-26/{counter:04d}"
+            
+            if doc_category == 'purchase':
+                if doc_type == 'po':
+                    ctr = get_next_counter(is_purchase=True, doc_type='po')
+                    bill_no = f"{prefix}-PO/25-26/{ctr:04d}"
+                elif doc_type == 'grn':
+                    ctr = get_next_counter(is_purchase=True, doc_type='grn')
+                    bill_no = f"{prefix}-GRN/25-26/{ctr:04d}"
+                elif doc_type == 'bill':
+                    ctr = get_next_counter(is_purchase=True, doc_type='bill')
+                    bill_no = f"{prefix}-PB/25-26/{ctr:04d}"
+                elif doc_type == 'dn':
+                    ctr = get_next_counter(is_purchase=True, is_debit_note=True)
+                    bill_no = f"{prefix}-PDN/25-26/{ctr:04d}"
+                else:
+                    bill_no = f"TEMP-{random.randint(1000,9999)}"
+            else:
+                # Sales
+                if doc_type == 'cn':
+                    ctr = get_next_counter(is_credit_note=True)
+                    bill_no = f"{prefix}-CN/25-26/{ctr:04d}"
+                else:
+                    # Standard Invoice
+                    ctr = get_next_counter(is_credit_note=False)
+                    bill_no = f"{prefix}/25-26/{ctr:04d}"
+            
             invoice_date_str = date.today().strftime('%d-%b-%Y')
         else:
             bill_no = str(data.get("manual_bill_no","")).strip()
             if not is_edit:
-                invoices = load_invoices()
-                if any(inv['bill_no']==bill_no for inv in invoices): 
-                    return jsonify({"error": "Duplicate Invoice"}), 409
-            
+                base = get_db_base()
+                coll_name = 'sales_invoices'
+                if doc_category == 'purchase': coll_name = 'purchase_bills'
+                chk = base.collection(coll_name).document(bill_no.replace('/', '_')).get()
+                if chk.exists:
+                    return jsonify({"error": "Duplicate Invoice/Doc Number"}), 409
+
             manual_date = data.get("manual_invoice_date","")
             invoice_date_str = datetime.strptime(manual_date, '%Y-%m-%d').strftime('%d-%b-%Y') if manual_date else date.today().strftime('%d-%b-%Y')
         
+        # --- 7. CALCULATIONS ---
         my_gstin = get_seller_profile_data().get('gstin', '')
         my_state_code = my_gstin[:2] if my_gstin else '06'
         
@@ -991,22 +1146,33 @@ def handle_invoice():
             line_total.append(inclusive)
             
             if not is_non_gst:
-                if data.get('client_gstin','').startswith(my_state_code):
+                # State logic: If state codes match, calculate CGST/SGST. Otherwise IGST.
+                # Assuming simple check based on GSTIN start, or if missing use fallback
+                if data.get('client_gstin','') and data.get('client_gstin','').startswith(my_state_code):
                     cgst_amt = round(tax_amt/2, 2)
                     sgst_amt = tax_amt - cgst_amt
                     total_cgst += cgst_amt
                     total_sgst += sgst_amt
+                elif not data.get('client_gstin','') and data.get('client_state','').lower() == 'delhi': 
+                    # If you need specific text matching based on your frontend
+                    total_cgst += round(tax_amt/2, 2)
+                    total_sgst += tax_amt - round(tax_amt/2, 2)
                 else:
                     total_igst += tax_amt
 
+        # --- 8. PREPARE DOCUMENT OBJECT ---
         invoice_data = {
             "bill_no": bill_no,
             "invoice_date": invoice_date_str,
             "timestamp": datetime.now().isoformat(),
+            "doc_category": doc_category,
+            "doc_type": doc_type,
             "is_non_gst": is_non_gst,
+            "is_debit_note": is_debit_note,
+            "is_credit_note": is_credit_note,
+            "original_invoice_no": data.get('original_invoice_no', ''),
             "client_name": client_name,
             
-            # Expanded Client Details
             "client_address1": client_details['address1'],
             "client_address2": client_details['address2'],
             "client_pincode": client_details['pincode'],
@@ -1016,7 +1182,6 @@ def handle_invoice():
             "client_email": client_details['email'],
             "client_mobile": client_details['mobile'],
             
-            # Ship To Details
             "shipto_name": data.get('shipto_name'),
             "shipto_address1": data.get('shipto_address1'),
             "shipto_address2": data.get('shipto_address2'),
@@ -1044,9 +1209,102 @@ def handle_invoice():
             "line_total_amounts": line_total
         }
         
-        save_single_invoice(invoice_data)
-        pdf_file = PDF_Generator(invoice_data)
-        return send_file(pdf_file, mimetype="application/pdf", as_attachment=True, download_name=f"Invoice_{bill_no.replace('/','_')}.pdf")
+        # --- 9. ATOMIC TRANSACTION (INVENTORY + SAVE) ---
+        @firestore.transactional
+        def commit_transaction(transaction, inv_data, is_edit_mode):
+            # A. Inventory Logic
+            if not is_edit_mode:
+                direction = 0
+                d_cat = inv_data.get('doc_category')
+                d_type = inv_data.get('doc_type')
+                
+                if d_cat == 'purchase':
+                    if d_type == 'grn': direction = 1
+                    elif d_type == 'dn': direction = -1
+                elif d_cat == 'sale':
+                    if d_type == 'invoice': direction = -1
+                    elif d_type == 'cn': direction = 1
+                
+                if direction != 0:
+                    parts = inv_data.get('particulars', [])
+                    q_list = inv_data.get('qtys', [])
+                    ts = datetime.now().isoformat()
+                    
+                    for k in range(len(parts)):
+                        iname = parts[k].strip()
+                        iqty = float(q_list[k]) if k < len(q_list) else 0
+                        
+                        if not iname or iqty <= 0: continue
+                        
+                        safe_id = "".join(x for x in iname if x.isalnum()).upper()
+                        if not safe_id: continue
+                        
+                        p_ref = db.collection('inventory_products').document(safe_id)
+                        snap = p_ref.get(transaction=transaction)
+                        
+                        cur_stock = float(snap.get('current_stock') or 0) if snap.exists else 0.0
+                        
+                        if direction == -1 and not snap.exists:
+                            raise ValueError(f"Stock Error: Item '{iname}' not found.")
+                            
+                        if direction == 1 and not snap.exists:
+                             transaction.set(p_ref, {"item_name": iname, "current_stock": 0.0})
+
+                        new_stock = cur_stock + (iqty * direction)
+                        
+                        if new_stock < 0:
+                            raise ValueError(f"Stock Error: Insufficient stock for '{iname}'. Available: {cur_stock}")
+                            
+                        transaction.update(p_ref, {"current_stock": new_stock, "last_updated": ts})
+                        
+                        l_ref = db.collection('inventory_ledger').document()
+                        transaction.set(l_ref, {
+                            "ref_doc_no": inv_data.get('bill_no'),
+                            "date": inv_data.get('invoice_date'),
+                            "doc_type": f"{d_cat}_{d_type}",
+                            "item_name": iname,
+                            "qty_change": (iqty * direction),
+                            "running_balance": new_stock,
+                            "timestamp": ts
+                        })
+
+            # B. Save Invoice Document
+            base_db = get_db_base()
+            c_cat = inv_data.get('doc_category', 'sale')
+            c_type = inv_data.get('doc_type', 'invoice')
+            c_name = 'sales_invoices' 
+            
+            if c_cat == 'purchase':
+                if c_type == 'dn': c_name = 'purchase_debit_notes'
+                elif c_type == 'po': c_name = 'purchase_orders'
+                elif c_type == 'grn': c_name = 'purchase_grns'
+                elif c_type == 'bill': c_name = 'purchase_bills'
+                else: c_name = 'purchase_misc'
+            else:
+                if c_type == 'cn': c_name = 'sales_credit_notes'
+                elif c_type == 'dn': c_name = 'sales_debit_notes' 
+                else: c_name = 'sales_invoices'
+                
+            doc_id = inv_data['bill_no'].replace('/', '_')
+            doc_ref = base_db.collection(c_name).document(doc_id)
+            transaction.set(doc_ref, inv_data)
+
+        # EXECUTE TRANSACTION
+        commit_transaction(db.transaction(), invoice_data, is_edit)
+
+        # --- 10. GENERATE PDF ---
+        pdf_file = PDF_Generator(invoice_data, is_debit_note=is_debit_note, is_credit_note=is_credit_note)
+        
+        prefix = "Document"
+        if doc_category == 'purchase': prefix = doc_type.upper()
+        elif is_debit_note: prefix = "DebitNote"
+        elif is_credit_note: prefix = "CreditNote"
+        else: prefix = "Invoice"
+            
+        return send_file(pdf_file, mimetype="application/pdf", as_attachment=True, download_name=f"{prefix}_{bill_no.replace('/','_')}.pdf")
+
+    except ValueError as ve:
+        return jsonify({"error": str(ve)}), 400
     except Exception as e:
         logging.error(f"Error generating invoice: {e}", exc_info=True)
         return jsonify({"error":str(e)}),500
@@ -1122,8 +1380,15 @@ def download_zip():
                 inv = next((i for i in all_invoices if i['bill_no'] == bno), None)
                 if inv:
                     is_cn = inv.get('is_credit_note', False)
-                    pdf_bytes = PDF_Generator(inv, is_credit_note=is_cn)
-                    filename = f"{'CreditNote' if is_cn else 'Invoice'}_{bno.replace('/','_')}.pdf"
+                    is_dn = inv.get('is_debit_note', False)
+                    pdf_bytes = PDF_Generator(inv, is_credit_note=is_cn, is_debit_note=is_dn)
+                    
+                    prefix = "Invoice"
+                    if is_cn: prefix = "CreditNote"
+                    elif is_dn: prefix = "DebitNote"
+                    elif inv.get('doc_category') == 'purchase': prefix = inv.get('doc_type','doc').upper()
+                    
+                    filename = f"{prefix}_{bno.replace('/','_')}.pdf"
                     zf.writestr(filename, pdf_bytes.getvalue())
 
         mem_zip.seek(0)
@@ -1145,8 +1410,14 @@ def email_invoice(bill_no):
         if not client_email: return jsonify({"error": "Client email not found in invoice data"}), 400
 
         is_cn = inv.get('is_credit_note', False)
-        doc_type = "Credit Note" if is_cn else "Invoice"
-        pdf_bytes = PDF_Generator(inv, is_credit_note=is_cn)
+        is_dn = inv.get('is_debit_note', False)
+        
+        doc_type = "Invoice"
+        if is_cn: doc_type = "Credit Note"
+        elif is_dn: doc_type = "Debit Note"
+        elif inv.get('doc_category') == 'purchase': doc_type = inv.get('doc_type').upper()
+        
+        pdf_bytes = PDF_Generator(inv, is_credit_note=is_cn, is_debit_note=is_dn)
         
         profile = get_seller_profile_data()
         subject = f"{doc_type} {bill_no} from {profile.get('company_name','SM Tech')}"
@@ -1164,8 +1435,17 @@ def download_invoice(bill_no):
     invoices = load_invoices()
     invoice_data = next((inv for inv in invoices if inv['bill_no']==bill_no),None)
     if not invoice_data: return jsonify({"error":"Invoice not found"}),404
-    pdf_file = PDF_Generator(invoice_data)
-    return send_file(pdf_file, mimetype="application/pdf", as_attachment=True, download_name=f"Invoice_{bill_no.replace('/','_')}.pdf")
+    
+    is_cn = invoice_data.get('is_credit_note', False)
+    is_dn = invoice_data.get('is_debit_note', False)
+    pdf_file = PDF_Generator(invoice_data, is_credit_note=is_cn, is_debit_note=is_dn)
+    
+    prefix = "Invoice"
+    if is_cn: prefix = "CreditNote"
+    elif is_dn: prefix = "DebitNote"
+    elif invoice_data.get('doc_category') == 'purchase': prefix = invoice_data.get('doc_type','doc').upper()
+    
+    return send_file(pdf_file, mimetype="application/pdf", as_attachment=True, download_name=f"{prefix}_{bill_no.replace('/','_')}.pdf")
 
 @app.route('/generate-credit-note/<path:bill_no>', methods=['GET'])
 @login_required
@@ -1173,7 +1453,7 @@ def generate_credit_note(bill_no):
     try:
         bill_no = unquote(bill_no)
         invoices = load_invoices()
-        existing_cn = next((inv for inv in invoices if inv.get('original_invoice_no') == bill_no), None)
+        existing_cn = next((inv for inv in invoices if inv.get('original_invoice_no') == bill_no and inv.get('is_credit_note')), None)
         if not existing_cn:
             possible_old_cn_id = f"CN-{bill_no}"
             existing_cn = next((inv for inv in invoices if inv['bill_no'] == possible_old_cn_id), None)
@@ -1222,6 +1502,23 @@ def download_excel_report():
     except Exception as e:
         return f"Error generating report: {str(e)}", 500
 
+# --- INVENTORY API ---
+@app.route("/api/check-stock/<path:item_name>")
+@login_required
+def check_stock(item_name):
+    try:
+        safe_id = "".join(x for x in item_name if x.isalnum()).upper()
+        if not safe_id: return jsonify({"exists": False, "stock": 0})
+        
+        doc = db.collection('inventory_products').document(safe_id).get()
+        if doc.exists:
+            return jsonify({"exists": True, "stock": doc.to_dict().get('current_stock', 0)})
+        return jsonify({"exists": False, "stock": 0})
+    except Exception as e:
+        logging.error(f"Stock Check Error: {e}")
+        return jsonify({"exists": False, "stock": 0})
+
+# --- GSTR-1 ROUTE ---
 @app.route('/download-gstr1')
 @login_required
 def download_gstr1():
@@ -1245,9 +1542,11 @@ def download_gstr1():
         ws_b2cs = wb.create_sheet("B2CS")
         ws_b2cs.append(["Type", "Place Of Supply", "Rate", "Taxable Value", "Cess Amount", "E-Commerce GSTIN"])
 
-        invoices = load_invoices_for_user(session.get('view_mode', current_user.id))
+        # CRITICAL: Only grab SALES documents for GSTR-1
+        all_docs = load_invoices_for_user(session.get('view_mode', current_user.id))
+        sales_docs = [d for d in all_docs if d.get('doc_category', 'sale') == 'sale']
         
-        for inv in invoices:
+        for inv in sales_docs:
             gstin = inv.get('client_gstin', '').strip()
             state_name = inv.get('client_state', '')
             state_code = STATE_CODES.get(state_name, "")
@@ -1270,8 +1569,6 @@ def download_gstr1():
                     ws_b2b.append([gstin, inv_no, inv_date, inv_val, pos, "N", "Regular", "", rate, taxable, 0])
             else:
                 # B2C
-                # Check for B2CL (> 2.5L and Interstate) logic can be added here
-                # Defaulting to B2CS for simplicity
                 for rate, taxable in tax_groups.items():
                     ws_b2cs.append(["OE", pos, rate, taxable, 0, ""])
 
@@ -1282,6 +1579,368 @@ def download_gstr1():
 
     except Exception as e:
         return f"Error: {e}", 500
+
+# ------------------ INVOICE STATUS ------------------
+@app.route('/update-status/<path:bill_no>', methods=['POST'])
+@login_required
+def update_invoice_status(bill_no):
+    try:
+        bill_no = unquote(bill_no)
+        new_status = request.json.get('status')
+        VALID = ['Draft', 'Confirmed', 'Paid', 'Cancelled']
+        if new_status not in VALID:
+            return jsonify({"error": "Invalid status"}), 400
+
+        base = get_db_base()
+        collections = ['sales_invoices', 'sales_credit_notes', 'sales_debit_notes',
+                       'purchase_orders', 'purchase_grns', 'purchase_bills', 'purchase_debit_notes', 'invoices']
+        doc_id = bill_no.replace('/', '_')
+        for c in collections:
+            ref = base.collection(c).document(doc_id)
+            snap = ref.get()
+            if snap.exists:
+                ref.update({"status": new_status, "status_updated_at": datetime.now().isoformat()})
+                return jsonify({"success": True})
+        return jsonify({"error": "Invoice not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ------------------ PAYMENT RECEIPTS ------------------
+@app.route('/payments', methods=['GET'])
+@login_required
+def get_payments():
+    try:
+        base = get_db_base()
+        docs = base.collection('payments').order_by('timestamp', direction=firestore.Query.DESCENDING).stream()
+        return jsonify([d.to_dict() for d in docs])
+    except Exception as e:
+        return jsonify([])
+
+@app.route('/payments', methods=['POST'])
+@login_required
+def add_payment():
+    try:
+        data = request.json or {}
+        party_name = data.get('party_name', '').strip()
+        amount = float(data.get('amount', 0))
+        payment_type = data.get('payment_type', 'receipt')  # receipt or payment
+        mode = data.get('mode', 'Cash')
+        ref_invoice = data.get('ref_invoice', '')
+        notes = data.get('notes', '')
+        payment_date = data.get('payment_date', date.today().strftime('%d-%b-%Y'))
+
+        if not party_name or amount <= 0:
+            return jsonify({"error": "Party name and amount are required"}), 400
+
+        payment_id = f"{party_name}_{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+        entry = {
+            "payment_id": payment_id,
+            "party_name": party_name,
+            "amount": amount,
+            "payment_type": payment_type,
+            "mode": mode,
+            "ref_invoice": ref_invoice,
+            "notes": notes,
+            "payment_date": payment_date,
+            "timestamp": datetime.now().isoformat(),
+            "created_by": current_user.id
+        }
+
+        base = get_db_base()
+        base.collection('payments').document(payment_id).set(entry)
+
+        # Auto-mark invoice as Paid if ref_invoice provided and full payment
+        if ref_invoice:
+            invoices = load_invoices()
+            inv = next((i for i in invoices if i['bill_no'] == ref_invoice), None)
+            if inv and payment_type == 'receipt':
+                total_paid = _get_total_paid(party_name, ref_invoice)
+                if total_paid >= float(inv.get('grand_total', 0)):
+                    doc_id = ref_invoice.replace('/', '_')
+                    for c in ['sales_invoices', 'invoices']:
+                        ref = base.collection(c).document(doc_id)
+                        if ref.get().exists:
+                            ref.update({"status": "Paid"})
+                            break
+
+        return jsonify({"success": True, "payment_id": payment_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+def _get_total_paid(party_name, ref_invoice):
+    try:
+        base = get_db_base()
+        docs = base.collection('payments').where('party_name', '==', party_name).where('ref_invoice', '==', ref_invoice).stream()
+        return sum(float(d.to_dict().get('amount', 0)) for d in docs)
+    except:
+        return 0.0
+
+
+# ------------------ PARTY LEDGER ------------------
+@app.route('/ledger/<path:party_name>', methods=['GET'])
+@login_required
+def party_ledger(party_name):
+    try:
+        party_name = unquote(party_name)
+        invoices = load_invoices()
+        base = get_db_base()
+
+        party_invoices = [i for i in invoices if i.get('client_name', '').strip().lower() == party_name.strip().lower()]
+
+        try:
+            pay_docs = base.collection('payments').where('party_name', '==', party_name).stream()
+            payments = [d.to_dict() for d in pay_docs]
+        except:
+            payments = []
+
+        entries = []
+        for inv in party_invoices:
+            cat = inv.get('doc_category', 'sale')
+            dtype = inv.get('doc_type', 'invoice')
+            is_cn = inv.get('is_credit_note', False)
+            amount = float(inv.get('grand_total', 0))
+
+            # For sales: invoice = debit (they owe us), CN = credit (we owe them)
+            # For purchase: bill = credit (we owe vendor), DN = debit (vendor owes us)
+            if cat == 'sale':
+                dr = amount if not is_cn else 0
+                cr = amount if is_cn else 0
+            else:
+                dr = 0
+                cr = amount
+
+            entries.append({
+                "date": inv.get('invoice_date', ''),
+                "doc_no": inv.get('bill_no', ''),
+                "doc_type": dtype.upper(),
+                "narration": f"{'Credit Note' if is_cn else 'Invoice'} - {inv.get('client_name','')}",
+                "debit": dr,
+                "credit": cr,
+                "timestamp": inv.get('timestamp', '')
+            })
+
+        for pay in payments:
+            ptype = pay.get('payment_type', 'receipt')
+            amount = float(pay.get('amount', 0))
+            entries.append({
+                "date": pay.get('payment_date', ''),
+                "doc_no": pay.get('payment_id', ''),
+                "doc_type": "RECEIPT" if ptype == 'receipt' else "PAYMENT",
+                "narration": f"Payment {pay.get('mode','')}" + (f" - Ref: {pay.get('ref_invoice','')}" if pay.get('ref_invoice') else ''),
+                "debit": 0,
+                "credit": amount if ptype == 'receipt' else 0,
+                "timestamp": pay.get('timestamp', '')
+            })
+
+        entries.sort(key=lambda x: x.get('timestamp', ''))
+
+        running = 0.0
+        for e in entries:
+            running += e['debit'] - e['credit']
+            e['balance'] = round(running, 2)
+
+        return jsonify({
+            "party_name": party_name,
+            "entries": entries,
+            "closing_balance": round(running, 2)
+        })
+    except Exception as e:
+        logging.error(f"Ledger error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+# ------------------ OUTSTANDING RECEIVABLES ------------------
+@app.route('/outstanding', methods=['GET'])
+@login_required
+def outstanding_report():
+    try:
+        invoices = load_invoices()
+        base = get_db_base()
+
+        # Only unpaid sales invoices
+        sales_inv = [i for i in invoices
+                     if i.get('doc_category', 'sale') == 'sale'
+                     and i.get('doc_type', 'invoice') == 'invoice'
+                     and not i.get('is_credit_note', False)
+                     and i.get('status', 'Confirmed') not in ['Paid', 'Cancelled']]
+
+        try:
+            pay_docs = base.collection('payments').where('payment_type', '==', 'receipt').stream()
+            all_payments = [d.to_dict() for d in pay_docs]
+        except:
+            all_payments = []
+
+        today = date.today()
+        result = []
+
+        for inv in sales_inv:
+            bill_no = inv.get('bill_no', '')
+            grand_total = float(inv.get('grand_total', 0))
+
+            paid = sum(float(p.get('amount', 0)) for p in all_payments if p.get('ref_invoice') == bill_no)
+            balance = round(grand_total - paid, 2)
+            if balance <= 0:
+                continue
+
+            inv_date_str = inv.get('invoice_date', '')
+            try:
+                months = {'Jan':1,'Feb':2,'Mar':3,'Apr':4,'May':5,'Jun':6,'Jul':7,'Aug':8,'Sep':9,'Oct':10,'Nov':11,'Dec':12}
+                parts = inv_date_str.split('-')
+                inv_date = date(int(parts[2]), months.get(parts[1], 1), int(parts[0]))
+                days_overdue = (today - inv_date).days
+            except:
+                days_overdue = 0
+
+            if days_overdue <= 30: age_bucket = "0-30 days"
+            elif days_overdue <= 60: age_bucket = "31-60 days"
+            elif days_overdue <= 90: age_bucket = "61-90 days"
+            else: age_bucket = "90+ days"
+
+            result.append({
+                "bill_no": bill_no,
+                "invoice_date": inv_date_str,
+                "client_name": inv.get('client_name', ''),
+                "client_mobile": inv.get('client_mobile', ''),
+                "grand_total": grand_total,
+                "paid": round(paid, 2),
+                "balance": balance,
+                "days_overdue": days_overdue,
+                "age_bucket": age_bucket,
+                "status": inv.get('status', 'Confirmed')
+            })
+
+        result.sort(key=lambda x: x['days_overdue'], reverse=True)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ------------------ DASHBOARD DATA ------------------
+@app.route('/dashboard-data', methods=['GET'])
+@login_required
+def dashboard_data():
+    try:
+        invoices = load_invoices()
+        today = date.today()
+        this_month = today.strftime('%b-%Y')
+        months_map = {'Jan':1,'Feb':2,'Mar':3,'Apr':4,'May':5,'Jun':6,'Jul':7,'Aug':8,'Sep':9,'Oct':10,'Nov':11,'Dec':12}
+
+        today_sales = 0.0
+        month_sales = 0.0
+        today_purchase = 0.0
+        month_purchase = 0.0
+        monthly_trend = {}  # last 6 months
+        top_clients = {}
+        doc_counts = {"invoice": 0, "cn": 0, "po": 0, "grn": 0, "bill": 0, "dn": 0}
+
+        for inv in invoices:
+            cat = inv.get('doc_category', 'sale')
+            dtype = inv.get('doc_type', 'invoice')
+            is_cn = inv.get('is_credit_note', False)
+            amount = float(inv.get('grand_total', 0))
+            inv_date_str = inv.get('invoice_date', '')
+            status = inv.get('status', 'Confirmed')
+
+            if status == 'Cancelled':
+                continue
+
+            try:
+                parts = inv_date_str.split('-')
+                inv_date = date(int(parts[2]), months_map.get(parts[1], 1), int(parts[0]))
+                inv_month = inv_date.strftime('%b-%Y')
+                inv_today = (inv_date == today)
+            except:
+                inv_date = None
+                inv_month = ''
+                inv_today = False
+
+            # Count doc types
+            if is_cn: doc_counts['cn'] = doc_counts.get('cn', 0) + 1
+            elif dtype in doc_counts: doc_counts[dtype] = doc_counts.get(dtype, 0) + 1
+
+            if cat == 'sale' and not is_cn and dtype == 'invoice':
+                if inv_today: today_sales += amount
+                if inv_month == this_month: month_sales += amount
+
+                # Monthly trend
+                if inv_date:
+                    mk = inv_date.strftime('%b %y')
+                    monthly_trend[mk] = monthly_trend.get(mk, 0) + amount
+
+                # Top clients
+                cname = inv.get('client_name', 'Unknown')
+                top_clients[cname] = top_clients.get(cname, 0) + amount
+
+            elif cat == 'purchase' and dtype == 'bill':
+                if inv_today: today_purchase += amount
+                if inv_month == this_month: month_purchase += amount
+
+        # Get outstanding count
+        try:
+            outstanding_res = outstanding_report()
+            outstanding_data = outstanding_res.get_json()
+            outstanding_count = len(outstanding_data) if isinstance(outstanding_data, list) else 0
+            outstanding_total = sum(o['balance'] for o in outstanding_data) if isinstance(outstanding_data, list) else 0
+        except:
+            outstanding_count = 0
+            outstanding_total = 0
+
+        # Get inventory low stock
+        try:
+            inv_docs = db.collection('inventory_products').stream()
+            low_stock = []
+            for d in inv_docs:
+                item = d.to_dict()
+                stock = float(item.get('current_stock', 0))
+                reorder = float(item.get('reorder_level', 0))
+                if stock <= reorder:
+                    low_stock.append({"item": item.get('item_name', d.id), "stock": stock, "reorder": reorder})
+        except:
+            low_stock = []
+
+        # Sort monthly trend - last 6 months only
+        sorted_months = sorted(monthly_trend.items(), key=lambda x: datetime.strptime(x[0], '%b %y'))[-6:]
+        top_clients_sorted = sorted(top_clients.items(), key=lambda x: x[1], reverse=True)[:5]
+
+        return jsonify({
+            "today_sales": round(today_sales, 2),
+            "month_sales": round(month_sales, 2),
+            "today_purchase": round(today_purchase, 2),
+            "month_purchase": round(month_purchase, 2),
+            "outstanding_count": outstanding_count,
+            "outstanding_total": round(outstanding_total, 2),
+            "low_stock_count": len(low_stock),
+            "low_stock_items": low_stock[:5],
+            "monthly_trend": sorted_months,
+            "top_clients": top_clients_sorted,
+            "doc_counts": doc_counts,
+            "total_invoices": len(invoices)
+        })
+    except Exception as e:
+        logging.error(f"Dashboard error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/dashboard', methods=['GET'])
+@login_required
+def dashboard():
+    return render_template('dashboard.html')
+
+
+# ------------------ RESET PASSWORD (FIX) ------------------
+@app.route('/reset-password', methods=['POST'])
+@login_required
+def reset_password():
+    if not current_user.is_master:
+        return "Unauthorized", 403
+    target = request.form.get('target_user_id')
+    new_pass = request.form.get('reset_password')
+    if target and new_pass:
+        db.collection('app_users').document(target).set({"password": new_pass}, merge=True)
+        flash(f"Password for {target} updated successfully!", "success")
+    return redirect(url_for('user_profile', edit_user=target))
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=int(os.getenv("PORT",5000)))
