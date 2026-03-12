@@ -1,10 +1,5 @@
 {
-  "crons": [
-    {
-      "path": "/send-daily-report",
-      "schedule": "30 16 * * *"
-    }
-  ],
+  "version": 2,
   "builds": [
     {
       "src": "app.py",
@@ -15,6 +10,12 @@
     {
       "src": "/(.*)",
       "dest": "app.py"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/send-daily-report?token=YOUR_CRON_SECRET_HERE",
+      "schedule": "30 16 * * *"
     }
   ]
 }

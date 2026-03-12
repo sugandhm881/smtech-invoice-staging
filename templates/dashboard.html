@@ -6,6 +6,9 @@
 <title>Dashboard - {{ profile.get('company_name', 'SM Tech') }}</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.default.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
 <style>
     .stat-card { transition: transform 0.2s, box-shadow 0.2s; }
     .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
@@ -19,11 +22,15 @@
     .age-30 { color:#d97706; }
     .age-60 { color:#ea580c; }
     .age-90 { color:#dc2626; font-weight:700; }
+    
+    /* Tom Select Customization for Dashboard */
+    .ts-wrapper .ts-control { border-radius: 0.5rem; padding: 0.5rem 0.75rem; border-color: #e5e7eb; font-size: 0.875rem; min-height: 38px; background: #fff;}
+    .ts-wrapper.focus .ts-control { border-color: #fbd38d; box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.2); }
+    .ts-dropdown { border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
 </style>
 </head>
 <body class="bg-gray-100 font-sans">
 
-<!-- NAV -->
 <div class="bg-white shadow-sm border-b sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         <div class="flex items-center gap-4">
@@ -40,15 +47,17 @@
 
         <div class="flex items-center gap-3">
             {% if current_user.is_master %}
-            <select onchange="window.location.href='/set-view-mode/'+this.value" class="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-gray-50">
-                {% for u in all_users %}
-                <option value="{{ u }}" {% if viewing_user == u %}selected{% endif %}>{{ u }}{% if u == current_user.id %} (Me){% endif %}</option>
-                {% endfor %}
-            </select>
+            <div style="min-width: 150px;">
+                <select id="view_as_select" class="w-full">
+                    {% for u in all_users %}
+                    <option value="{{ u }}" {% if viewing_user == u %}selected{% endif %}>{{ u }}{% if u == current_user.id %} (Me){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
             {% endif %}
             <a href="/home" class="px-4 py-2 bg-orange-500 text-white text-sm font-bold rounded-lg hover:bg-orange-600 transition flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                New Invoice
+                New Document
             </a>
             <a href="/profile" class="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition">Settings</a>
             <a href="/logout" class="px-4 py-2 border border-red-200 text-red-500 text-sm font-semibold rounded-lg hover:bg-red-50 transition">Logout</a>
@@ -58,7 +67,6 @@
 
 <div class="max-w-7xl mx-auto px-6 py-6">
 
-    <!-- KPI CARDS -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="kpiCards">
         <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
             <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Today's Sales</p>
@@ -75,14 +83,13 @@
             <p class="text-2xl font-extrabold text-orange-600">₹<span id="kpi_outstanding_total">--</span></p>
             <p class="text-xs text-orange-400 mt-1"><span id="kpi_outstanding_count">--</span> unpaid invoices</p>
         </div>
-        <div class="stat-card bg-white rounded-2xl p-5 border border-red-100 shadow-sm">
+        <div class="stat-card bg-white rounded-2xl p-5 border border-red-100 shadow-sm" id="lowStockCard">
             <p class="text-xs text-red-400 font-bold uppercase tracking-wider mb-1">Low Stock Items</p>
             <p class="text-2xl font-extrabold text-red-600"><span id="kpi_low_stock">--</span></p>
             <p class="text-xs text-red-400 mt-1">Below reorder level</p>
         </div>
     </div>
 
-    <!-- CHARTS ROW -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div class="md:col-span-2 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
             <h3 class="font-bold text-gray-700 mb-3 text-sm uppercase tracking-wide">Monthly Sales Trend</h3>
@@ -94,47 +101,44 @@
         </div>
     </div>
 
-    <!-- TABS -->
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <div class="border-b flex overflow-x-auto">
-            <button class="tab-btn active px-6 py-4 text-sm text-gray-500 whitespace-nowrap" onclick="switchTab('history')" id="tab-history">📋 Invoice History</button>
+            <button class="tab-btn active px-6 py-4 text-sm text-gray-500 whitespace-nowrap" onclick="switchTab('history')" id="tab-history">📋 Document History</button>
             <button class="tab-btn px-6 py-4 text-sm text-gray-500 whitespace-nowrap" onclick="switchTab('outstanding')" id="tab-outstanding">💰 Outstanding</button>
             <button class="tab-btn px-6 py-4 text-sm text-gray-500 whitespace-nowrap" onclick="switchTab('payments')" id="tab-payments">🏦 Record Payment</button>
             <button class="tab-btn px-6 py-4 text-sm text-gray-500 whitespace-nowrap" onclick="switchTab('ledger')" id="tab-ledger">📒 Party Ledger</button>
         </div>
 
-        <!-- TAB: INVOICE HISTORY -->
         <div id="panel-history" class="p-5">
             <div class="flex flex-col md:flex-row gap-3 mb-4">
-                <input type="text" id="histSearch" placeholder="Search by Doc No or Party..." class="border rounded-lg px-3 py-2 text-sm flex-1 focus:ring-2 focus:ring-orange-300 focus:outline-none" oninput="filterHistory()">
-                <input type="date" id="histDateFrom" class="border rounded-lg px-3 py-2 text-sm" onchange="filterHistory()">
-                <input type="date" id="histDateTo" class="border rounded-lg px-3 py-2 text-sm" onchange="filterHistory()">
-                <select id="histTypeFilter" class="border rounded-lg px-3 py-2 text-sm" onchange="filterHistory()">
-                    <option value="">All Types</option>
-                    <option value="invoice">Invoice</option>
-                    <option value="cn">Credit Note</option>
-                    <option value="po">Purchase Order</option>
-                    <option value="grn">GRN</option>
-                    <option value="bill">Purchase Bill</option>
-                </select>
-                <select id="histStatusFilter" class="border rounded-lg px-3 py-2 text-sm" onchange="filterHistory()">
-                    <option value="">All Status</option>
-                    <option value="Draft">Draft</option>
-                    <option value="Confirmed">Confirmed</option>
-                    <option value="Paid">Paid</option>
-                    <option value="Cancelled">Cancelled</option>
-                </select>
+                <input type="text" id="histSearch" placeholder="Search by Doc No or Party..." class="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 focus:ring-2 focus:ring-orange-300 focus:outline-none" oninput="filterHistory()">
+                <input type="date" id="histDateFrom" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" onchange="filterHistory()">
+                <input type="date" id="histDateTo" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" onchange="filterHistory()">
+                
+                <div style="min-width: 180px;">
+                    <select id="histTypeFilter"></select>
+                </div>
+                <div style="min-width: 150px;">
+                    <select id="histStatusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="Draft">Draft</option>
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
             </div>
+            
             <div class="flex gap-2 mb-3">
-                <button onclick="selectAll(true)" class="text-xs px-3 py-1.5 bg-gray-100 rounded hover:bg-gray-200">Select All</button>
-                <button onclick="selectAll(false)" class="text-xs px-3 py-1.5 bg-gray-100 rounded hover:bg-gray-200">Deselect</button>
-                <button onclick="downloadZip()" class="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700">Download ZIP</button>
-                <a href="/download-report" class="text-xs px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700">Excel Report</a>
-                <a href="/download-gstr1" class="text-xs px-3 py-1.5 bg-teal-600 text-white rounded hover:bg-teal-700">GSTR-1</a>
+                <button onclick="selectAll(true)" class="text-xs px-3 py-1.5 bg-gray-100 rounded hover:bg-gray-200 font-medium">Select All</button>
+                <button onclick="selectAll(false)" class="text-xs px-3 py-1.5 bg-gray-100 rounded hover:bg-gray-200 font-medium">Deselect</button>
+                <button onclick="downloadZip()" class="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700 font-medium">Download ZIP</button>
+                <a href="/download-report" class="text-xs px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700 font-medium flex items-center justify-center">Excel Report</a>
+                <button onclick="openGstrModal()" class="text-xs px-3 py-1.5 bg-teal-600 text-white rounded hover:bg-teal-700 font-medium flex items-center justify-center">GSTR-1</button>
             </div>
             <div class="overflow-x-auto max-h-[500px] border rounded-xl">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 sticky top-0">
+                    <thead class="bg-gray-50 sticky top-0 z-10">
                         <tr class="text-xs text-gray-500 uppercase tracking-wide">
                             <th class="p-3 w-8">✓</th>
                             <th class="p-3 text-left">Doc No</th>
@@ -151,7 +155,6 @@
             <p class="text-xs text-gray-400 mt-2">Showing <span id="histCount">0</span> documents</p>
         </div>
 
-        <!-- TAB: OUTSTANDING -->
         <div id="panel-outstanding" class="p-5 hidden">
             <div class="grid grid-cols-4 gap-3 mb-4" id="ageBuckets">
                 <div class="bg-green-50 rounded-xl p-3 border border-green-100 text-center">
@@ -190,65 +193,62 @@
             </div>
         </div>
 
-        <!-- TAB: PAYMENTS -->
         <div id="panel-payments" class="p-5 hidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Record Payment Form -->
                 <div class="bg-gray-50 rounded-xl p-5 border border-gray-200">
                     <h3 class="font-bold text-gray-800 mb-4">Record Payment / Receipt</h3>
-                    <div class="space-y-3">
+                    <div class="space-y-4">
                         <div>
                             <label class="text-xs font-bold text-gray-500 uppercase">Payment Type</label>
-                            <select id="pay_type" class="w-full border rounded-lg px-3 py-2 mt-1 text-sm">
+                            <select id="pay_type" class="w-full">
                                 <option value="receipt">Receipt (Money Received from Client)</option>
                                 <option value="payment">Payment (Money Paid to Vendor)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-gray-500 uppercase">Party Name</label>
-                            <input type="text" id="pay_party" list="partyList" placeholder="Client or Vendor Name" class="w-full border rounded-lg px-3 py-2 mt-1 text-sm focus:ring-2 focus:ring-orange-300 focus:outline-none">
-                            <datalist id="partyList"></datalist>
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Party Name</label>
+                            <select id="pay_party" class="w-full" placeholder="Search or select party..."></select>
                         </div>
                         <div>
                             <label class="text-xs font-bold text-gray-500 uppercase">Amount (₹)</label>
-                            <input type="number" id="pay_amount" placeholder="0.00" class="w-full border rounded-lg px-3 py-2 mt-1 text-sm focus:ring-2 focus:ring-orange-300 focus:outline-none">
+                            <input type="number" id="pay_amount" placeholder="0.00" class="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 text-sm focus:ring-2 focus:ring-orange-300 focus:outline-none">
                         </div>
-                        <div>
-                            <label class="text-xs font-bold text-gray-500 uppercase">Payment Mode</label>
-                            <select id="pay_mode" class="w-full border rounded-lg px-3 py-2 mt-1 text-sm">
-                                <option>Cash</option>
-                                <option>UPI</option>
-                                <option>NEFT</option>
-                                <option>RTGS</option>
-                                <option>Cheque</option>
-                            </select>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs font-bold text-gray-500 uppercase">Mode</label>
+                                <select id="pay_mode" class="w-full">
+                                    <option>Cash</option>
+                                    <option>UPI</option>
+                                    <option>NEFT/RTGS</option>
+                                    <option>Cheque</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-gray-500 uppercase">Date</label>
+                                <input type="date" id="pay_date" class="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 text-sm focus:ring-2 focus:ring-orange-300 outline-none">
+                            </div>
                         </div>
                         <div>
                             <label class="text-xs font-bold text-gray-500 uppercase">Against Invoice (Optional)</label>
-                            <input type="text" id="pay_ref" list="invoiceList" placeholder="e.g. SMT/25-26/0001" class="w-full border rounded-lg px-3 py-2 mt-1 text-sm">
+                            <input type="text" id="pay_ref" list="invoiceList" placeholder="e.g. SMT/25-26/0001" class="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 text-sm focus:ring-2 focus:ring-orange-300 outline-none">
                             <datalist id="invoiceList"></datalist>
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-gray-500 uppercase">Date</label>
-                            <input type="date" id="pay_date" class="w-full border rounded-lg px-3 py-2 mt-1 text-sm">
-                        </div>
-                        <div>
                             <label class="text-xs font-bold text-gray-500 uppercase">Notes</label>
-                            <input type="text" id="pay_notes" placeholder="Ref No, Cheque No, etc." class="w-full border rounded-lg px-3 py-2 mt-1 text-sm">
+                            <input type="text" id="pay_notes" placeholder="Ref No, Cheque No, etc." class="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 text-sm focus:ring-2 focus:ring-orange-300 outline-none">
                         </div>
-                        <button onclick="submitPayment()" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-lg font-bold hover:from-green-600 hover:to-emerald-700 transition shadow-md">
+                        <button onclick="submitPayment()" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-lg font-bold hover:from-green-600 hover:to-emerald-700 transition shadow-md mt-2">
                             Save Payment Entry
                         </button>
                     </div>
                 </div>
 
-                <!-- Recent Payments -->
                 <div>
                     <h3 class="font-bold text-gray-800 mb-4">Recent Payments</h3>
-                    <div class="overflow-y-auto max-h-[480px] border rounded-xl">
+                    <div class="overflow-y-auto max-h-[500px] border rounded-xl">
                         <table class="w-full text-sm">
                             <thead class="bg-gray-50 sticky top-0">
-                                <tr class="text-xs text-gray-500 uppercase">
+                                <tr class="text-xs text-gray-500 uppercase tracking-wide">
                                     <th class="p-3 text-left">Date</th>
                                     <th class="p-3 text-left">Party</th>
                                     <th class="p-3 text-right">Amount</th>
@@ -262,27 +262,27 @@
             </div>
         </div>
 
-        <!-- TAB: PARTY LEDGER -->
         <div id="panel-ledger" class="p-5 hidden">
-            <div class="flex gap-3 mb-4">
-                <input type="text" id="ledgerParty" list="partyListLedger" placeholder="Enter Party Name to view ledger..." class="border rounded-lg px-3 py-2 text-sm flex-1 focus:ring-2 focus:ring-orange-300 focus:outline-none">
-                <datalist id="partyListLedger"></datalist>
-                <button onclick="loadLedger()" class="px-5 py-2 bg-orange-500 text-white rounded-lg font-bold text-sm hover:bg-orange-600 transition">Load Ledger</button>
+            <div class="mb-5 max-w-md">
+                <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Select Party to View Ledger</label>
+                <select id="ledgerParty" class="w-full" placeholder="Search party name..."></select>
             </div>
-            <div id="ledgerSummary" class="hidden mb-4 grid grid-cols-3 gap-3">
-                <div class="bg-blue-50 rounded-xl p-3 border border-blue-100 text-center">
+
+            <div id="ledgerSummary" class="hidden mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 rounded-xl p-4 border border-blue-100 text-center">
                     <p class="text-xs text-blue-500 font-bold uppercase">Total Debit (Dr)</p>
-                    <p class="text-lg font-extrabold text-blue-700">₹<span id="ledger_dr">0</span></p>
+                    <p class="text-xl font-extrabold text-blue-700">₹<span id="ledger_dr">0</span></p>
                 </div>
-                <div class="bg-green-50 rounded-xl p-3 border border-green-100 text-center">
+                <div class="bg-green-50 rounded-xl p-4 border border-green-100 text-center">
                     <p class="text-xs text-green-500 font-bold uppercase">Total Credit (Cr)</p>
-                    <p class="text-lg font-extrabold text-green-700">₹<span id="ledger_cr">0</span></p>
+                    <p class="text-xl font-extrabold text-green-700">₹<span id="ledger_cr">0</span></p>
                 </div>
-                <div class="rounded-xl p-3 border text-center" id="ledger_balance_card">
+                <div class="rounded-xl p-4 border text-center flex flex-col justify-center" id="ledger_balance_card">
                     <p class="text-xs font-bold uppercase text-gray-500">Closing Balance</p>
-                    <p class="text-lg font-extrabold" id="ledger_balance_text">₹0</p>
+                    <p class="text-2xl font-extrabold" id="ledger_balance_text">₹0</p>
                 </div>
             </div>
+            
             <div class="overflow-x-auto border rounded-xl">
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 sticky top-0">
@@ -296,7 +296,7 @@
                         </tr>
                     </thead>
                     <tbody id="ledgerTableBody">
-                        <tr><td colspan="6" class="p-6 text-center text-gray-400 italic">Search a party to view their ledger.</td></tr>
+                        <tr><td colspan="6" class="p-8 text-center text-gray-400 italic">Select a party from the dropdown above to view their ledger.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -305,30 +305,70 @@
     </div>
 </div>
 
-<!-- PREVIEW MODAL -->
-<div id="previewModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between p-5 border-b">
-            <h2 class="text-lg font-bold text-gray-800">Invoice Preview</h2>
-            <button onclick="closePreview()" class="text-gray-400 hover:text-gray-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-        </div>
-        <div id="previewContent" class="p-5"></div>
-        <div class="p-5 border-t flex gap-3 justify-end">
-            <button onclick="closePreview()" class="px-5 py-2 border rounded-lg text-sm font-semibold hover:bg-gray-50">Cancel</button>
-            <button onclick="confirmAndGenerate()" class="px-5 py-2 bg-orange-500 text-white rounded-lg text-sm font-bold hover:bg-orange-600">Confirm & Generate PDF</button>
+<div id="gstrModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+        <h3 class="font-bold text-xl text-gray-800 mb-2">Download GSTR-1</h3>
+        <p class="text-sm text-gray-500 mb-5">Select the month for which you want to generate the GSTR-1 Excel report.</p>
+        
+        <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Filing Month</label>
+        <select id="gstrMonthSelect" class="w-full"></select>
+        
+        <div class="flex justify-end gap-3 mt-6">
+            <button onclick="closeGstrModal()" class="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-semibold hover:bg-gray-50 transition">Cancel</button>
+            <button onclick="downloadGstr1()" class="px-5 py-2.5 bg-teal-600 text-white rounded-lg text-sm font-bold hover:bg-teal-700 shadow-md transition">Download</button>
         </div>
     </div>
 </div>
 
 <script>
+// FIX: Quotes around Jinja syntax so VSCode parser doesn't throw syntax errors
+const INVOICE_TYPE = "{{ profile.get('invoice_type', 'goods') }}";
+const IS_SERVICE = (INVOICE_TYPE === 'service');
+const PERM_SALE = ("{{ 'true' if current_user.has_permission('sale') else 'false' }}" === "true");
+const PERM_PURCHASE = ("{{ 'true' if current_user.has_permission('purchase') else 'false' }}" === "true");
+
 let allInvoices = [];
 let allPayments = [];
 let salesChart = null;
 
-// ---- INIT ----
+let tsViewAs, tsTypeFilter, tsStatusFilter, tsPayType, tsPayMode, payPartyTs, ledgerTs, gstrTs;
+
 document.addEventListener('DOMContentLoaded', async () => {
+    // Hide low stock if service mode
+    if (IS_SERVICE) {
+        const lowStockCard = document.getElementById('lowStockCard');
+        if (lowStockCard) lowStockCard.style.display = 'none';
+        const kpiGrid = document.getElementById('kpiCards');
+        if(kpiGrid) { kpiGrid.classList.remove('md:grid-cols-4'); kpiGrid.classList.add('md:grid-cols-3'); }
+    }
+
+    if (document.getElementById('view_as_select')) {
+        tsViewAs = new TomSelect("#view_as_select", { controlInput: null, onChange: val => { if(val) window.location.href='/set-view-mode/'+val; }});
+    }
+
+    // Init Document Type Filter based on Permissions
+    let typeOptions = [{value: '', text: 'All Document Types'}];
+    if (PERM_SALE) {
+        typeOptions.push({value: 'invoice', text: 'Tax Invoice (Sale)'});
+        typeOptions.push({value: 'cn', text: 'Credit Note'});
+    }
+    if (PERM_PURCHASE) {
+        typeOptions.push({value: 'po', text: 'Purchase Order'});
+        typeOptions.push({value: 'grn', text: 'Goods Receipt Note'});
+        typeOptions.push({value: 'bill', text: 'Purchase Bill'});
+        typeOptions.push({value: 'dn', text: 'Debit Note'});
+    }
+
+    tsTypeFilter = new TomSelect('#histTypeFilter', {
+        options: typeOptions,
+        controlInput: null,
+        onChange: filterHistory
+    });
+
+    tsStatusFilter = new TomSelect('#histStatusFilter', { controlInput: null, onChange: filterHistory });
+    tsPayType = new TomSelect('#pay_type', { controlInput: null });
+    tsPayMode = new TomSelect('#pay_mode', { controlInput: null });
+
     setDefaultDates();
     await Promise.all([loadDashboardData(), loadInvoices(), loadPayments()]);
     populateDataLists();
@@ -340,6 +380,29 @@ function setDefaultDates() {
     document.getElementById('histDateFrom').value = firstOfMonth.toISOString().split('T')[0];
     document.getElementById('histDateTo').value = today.toISOString().split('T')[0];
     document.getElementById('pay_date').value = today.toISOString().split('T')[0];
+}
+
+// Convert YYYY-MM-DD from calendar to DD-Mon-YYYY for backend
+function formatToDDMonYYYY(ymdStr) {
+    if (!ymdStr) return '';
+    const parts = ymdStr.split('-');
+    if (parts.length === 3 && parts[0].length === 4) {
+        const m = { "01":"Jan", "02":"Feb", "03":"Mar", "04":"Apr", "05":"May", "06":"Jun", "07":"Jul", "08":"Aug", "09":"Sep", "10":"Oct", "11":"Nov", "12":"Dec" };
+        return `${parts[2]}-${m[parts[1]]}-${parts[0]}`;
+    }
+    return ymdStr;
+}
+
+// Convert DD-Mon-YYYY from backend to YYYY-MM-DD for native input
+function convertDateForInput(d) {
+  if(!d) return "";
+  const parts = d.split('-'); 
+  if(parts.length === 3 && parts[0].length === 2) {
+      const m = {Jan:"01",Feb:"02",Mar:"03",Apr:"04",May:"05",Jun:"06",Jul:"07",Aug:"08",Sep:"09",Oct:"10",Nov:"11",Dec:"12"};
+      const month = isNaN(parseInt(parts[1])) ? m[parts[1]] : parts[1];
+      return `${parts[2]}-${month}-${parts[0]}`;
+  }
+  return d;
 }
 
 async function loadDashboardData() {
@@ -354,9 +417,8 @@ async function loadDashboardData() {
         document.getElementById('kpi_month_purchase').textContent = fmt(d.month_purchase);
         document.getElementById('kpi_outstanding_total').textContent = fmt(d.outstanding_total);
         document.getElementById('kpi_outstanding_count').textContent = d.outstanding_count;
-        document.getElementById('kpi_low_stock').textContent = d.low_stock_count;
+        if(document.getElementById('kpi_low_stock')) document.getElementById('kpi_low_stock').textContent = d.low_stock_count;
 
-        // Monthly Chart
         const labels = d.monthly_trend.map(x => x[0]);
         const values = d.monthly_trend.map(x => x[1]);
         const ctx = document.getElementById('salesChart').getContext('2d');
@@ -365,41 +427,22 @@ async function loadDashboardData() {
             type: 'bar',
             data: {
                 labels,
-                datasets: [{
-                    label: 'Sales (₹)',
-                    data: values,
-                    backgroundColor: 'rgba(249,115,22,0.7)',
-                    borderColor: '#f97316',
-                    borderWidth: 1,
-                    borderRadius: 6
-                }]
+                datasets: [{ label: 'Sales (₹)', data: values, backgroundColor: 'rgba(249,115,22,0.7)', borderColor: '#f97316', borderWidth: 1, borderRadius: 6 }]
             },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { callback: v => '₹' + fmt(v) } } }
-            }
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => '₹' + fmt(v) } } } }
         });
 
-        // Top clients
         const tcEl = document.getElementById('topClientsList');
         tcEl.innerHTML = '';
         const maxVal = d.top_clients[0] ? d.top_clients[0][1] : 1;
-        d.top_clients.forEach(([name, val], i) => {
+        d.top_clients.forEach(([name, val]) => {
             const pct = Math.round((val / maxVal) * 100);
-            tcEl.innerHTML += `
-                <div>
-                    <div class="flex justify-between text-xs mb-0.5">
-                        <span class="font-semibold text-gray-700 truncate max-w-[150px]">${name}</span>
-                        <span class="text-gray-500">₹${fmt(val)}</span>
-                    </div>
-                    <div class="h-1.5 bg-gray-100 rounded-full">
-                        <div class="h-1.5 bg-orange-400 rounded-full" style="width:${pct}%"></div>
-                    </div>
-                </div>`;
+            tcEl.innerHTML += `<div>
+                <div class="flex justify-between text-xs mb-0.5"><span class="font-semibold text-gray-700 truncate max-w-[150px]">${name}</span><span class="text-gray-500">₹${fmt(val)}</span></div>
+                <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-1.5 bg-orange-400 rounded-full" style="width:${pct}%"></div></div>
+            </div>`;
         });
-
-    } catch(e) { console.error('Dashboard data error', e); }
+    } catch(e) {}
 }
 
 async function loadInvoices() {
@@ -424,14 +467,17 @@ function populateDataLists() {
     const parties = [...new Set(allInvoices.map(i => i.client_name).filter(Boolean))];
     const invoiceNos = allInvoices.filter(i => i.doc_type === 'invoice' && i.doc_category === 'sale').map(i => i.bill_no);
 
-    ['partyList','partyListLedger'].forEach(id => {
-        const dl = document.getElementById(id);
-        dl.innerHTML = parties.map(p => `<option value="${p}">`).join('');
-    });
+    const tsOptions = parties.map(p => ({value: p, text: p}));
+
+    if(payPartyTs) payPartyTs.destroy();
+    payPartyTs = new TomSelect("#pay_party", { options: tsOptions, create: true, sortField: {field: "text", direction: "asc"}, placeholder: "Select or type party name..." });
+
+    if(ledgerTs) ledgerTs.destroy();
+    ledgerTs = new TomSelect("#ledgerParty", { options: tsOptions, create: false, sortField: {field: "text", direction: "asc"}, placeholder: "Select party to view ledger...", onChange: val => { if(val) loadLedger(val); } });
+
     document.getElementById('invoiceList').innerHTML = invoiceNos.map(n => `<option value="${n}">`).join('');
 }
 
-// ---- TABS ----
 function switchTab(tab) {
     ['history','outstanding','payments','ledger'].forEach(t => {
         document.getElementById(`panel-${t}`).classList.add('hidden');
@@ -441,22 +487,33 @@ function switchTab(tab) {
     document.getElementById(`tab-${tab}`).classList.add('active');
 }
 
-// ---- INVOICE HISTORY ----
 function filterHistory() {
     const term = document.getElementById('histSearch').value.toLowerCase();
-    const from = document.getElementById('histDateFrom').value;
-    const to = document.getElementById('histDateTo').value;
-    const type = document.getElementById('histTypeFilter').value;
-    const status = document.getElementById('histStatusFilter').value;
+    const from = document.getElementById('histDateFrom').value; 
+    const to = document.getElementById('histDateTo').value;     
+    const type = tsTypeFilter ? tsTypeFilter.getValue() : '';
+    const status = tsStatusFilter ? tsStatusFilter.getValue() : '';
 
     const filtered = allInvoices.filter(i => {
         if (term && !i.bill_no.toLowerCase().includes(term) && !(i.client_name||'').toLowerCase().includes(term)) return false;
-        if (type && i.doc_type !== type) return false;
+        
+        const actualType = i.is_credit_note ? 'cn' : (i.is_debit_note ? 'dn' : (i.doc_type || 'invoice'));
+        if (type && actualType !== type) return false;
         if (status && (i.status || 'Confirmed') !== status) return false;
+        
         if (from || to) {
-            const ts = i.timestamp ? i.timestamp.split('T')[0] : '';
-            if (from && ts < from) return false;
-            if (to && ts > to) return false;
+            let isoDate = '';
+            if (i.invoice_date) {
+                const p = i.invoice_date.split('-');
+                if (p.length === 3) {
+                    const m = { "Jan":"01", "Feb":"02", "Mar":"03", "Apr":"04", "May":"05", "Jun":"06", "Jul":"07", "Aug":"08", "Sep":"09", "Oct":"10", "Nov":"11", "Dec":"12" };
+                    const month = isNaN(parseInt(p[1])) ? m[p[1]] : p[1].padStart(2, '0');
+                    isoDate = `${p[2]}-${month}-${p[0].padStart(2, '0')}`;
+                }
+            } else if (i.timestamp) isoDate = i.timestamp.split('T')[0];
+            
+            if (from && isoDate < from) return false;
+            if (to && isoDate > to) return false;
         }
         return true;
     });
@@ -467,34 +524,33 @@ function renderHistoryTable(data) {
     const tbody = document.getElementById('histTableBody');
     document.getElementById('histCount').textContent = data.length;
     if (!data.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-gray-400">No documents found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-gray-400">No documents found matching filters.</td></tr>';
         return;
     }
     tbody.innerHTML = data.map(inv => {
         const cat = inv.doc_category || 'sale';
-        const type = inv.doc_type || 'invoice';
-        const is_cn = inv.is_credit_note;
+        const type = inv.is_credit_note ? 'cn' : (inv.is_debit_note ? 'dn' : (inv.doc_type || 'invoice'));
         const status = inv.status || 'Confirmed';
 
         let label = 'INV', color = 'bg-green-50 text-green-600 border-green-200';
         if (cat === 'purchase') { color = 'bg-blue-100 text-blue-800 border-blue-200'; label = type.toUpperCase(); }
-        else if (is_cn || type === 'cn') { label='CN'; color='bg-red-100 text-red-600 border-red-200'; }
+        else if (type === 'cn') { label='CN'; color='bg-red-100 text-red-600 border-red-200'; }
 
         const now = new Date();
         const created = inv.timestamp ? new Date(inv.timestamp) : null;
         const canEdit = created && ((now - created) / 3600000) <= 24 && type !== 'cn' && type !== 'dn';
 
         return `<tr class="border-b hover:bg-gray-50">
-            <td class="p-3"><input type="checkbox" class="hist-cb rounded" value="${inv.bill_no}"></td>
+            <td class="p-3"><input type="checkbox" class="hist-cb rounded border-gray-300 text-orange-500 focus:ring-orange-500" value="${inv.bill_no}"></td>
             <td class="p-3 font-medium">
                 ${inv.bill_no}
                 <span class="ml-1 text-[10px] px-1.5 py-0.5 rounded border font-bold ${color}">${label}</span>
             </td>
             <td class="p-3 text-gray-500">${inv.invoice_date||'-'}</td>
-            <td class="p-3 text-gray-700">${inv.client_name||'-'}</td>
-            <td class="p-3 text-right font-semibold">₹${(inv.grand_total||0).toFixed(2)}</td>
+            <td class="p-3 text-gray-700 font-semibold">${inv.client_name||'-'}</td>
+            <td class="p-3 text-right font-mono font-bold text-gray-800">₹${(inv.grand_total||0).toFixed(2)}</td>
             <td class="p-3 text-center">
-                <select onchange="updateStatus('${inv.bill_no}', this.value)" class="text-xs border rounded px-2 py-1 status-badge status-${status}">
+                <select onchange="updateStatus('${inv.bill_no}', this.value)" class="text-xs border rounded px-2 py-1 outline-none cursor-pointer status-badge status-${status}">
                     <option value="Draft" ${status==='Draft'?'selected':''}>Draft</option>
                     <option value="Confirmed" ${status==='Confirmed'?'selected':''}>Confirmed</option>
                     <option value="Paid" ${status==='Paid'?'selected':''}>Paid</option>
@@ -502,11 +558,12 @@ function renderHistoryTable(data) {
                 </select>
             </td>
             <td class="p-3 text-center">
-                <div class="flex items-center justify-center gap-2">
+                <div class="flex items-center justify-center gap-3">
                     ${canEdit ? `<a href="/home?edit=${encodeURIComponent(inv.bill_no)}" class="text-indigo-500 hover:text-indigo-700" title="Edit"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></a>` : ''}
                     <button onclick="window.location.href='/download-invoice/${encodeURIComponent(inv.bill_no)}'" class="text-blue-500 hover:text-blue-700" title="Download"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></button>
                     <button onclick="emailSingle('${inv.bill_no}')" class="text-green-500 hover:text-green-700" title="Email"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg></button>
                     <button onclick="quickPayment('${inv.bill_no}', '${(inv.client_name||'').replace(/'/g,"\\'")}', ${inv.grand_total||0})" class="text-orange-500 hover:text-orange-700" title="Record Payment"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg></button>
+                    <button onclick="deleteInvoice('${inv.bill_no}')" class="text-red-500 hover:text-red-700" title="Delete Document"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                 </div>
             </td>
         </tr>`;
@@ -515,18 +572,28 @@ function renderHistoryTable(data) {
 
 async function updateStatus(billNo, newStatus) {
     try {
-        const res = await fetch(`/update-status/${encodeURIComponent(billNo)}`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({status: newStatus})
-        });
+        const res = await fetch(`/update-status/${encodeURIComponent(billNo)}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({status: newStatus}) });
         const d = await res.json();
         if (!d.success) alert('Error: ' + d.error);
         else {
-            // Update local cache
             const inv = allInvoices.find(i => i.bill_no === billNo);
             if (inv) inv.status = newStatus;
             loadDashboardData();
+        }
+    } catch(e) { alert('Network error'); }
+}
+
+async function deleteInvoice(billNo) {
+    if(!confirm(`WARNING: Are you sure you want to permanently delete Document ${billNo}? This cannot be undone.`)) return;
+    try {
+        const res = await fetch(`/delete-invoice/${encodeURIComponent(billNo)}`, { method: 'DELETE' });
+        const d = await res.json();
+        if (d.success) {
+            alert('Document deleted successfully.');
+            await loadInvoices();
+            loadDashboardData();
+        } else {
+            alert('Error: ' + d.error);
         }
     } catch(e) { alert('Network error'); }
 }
@@ -539,7 +606,7 @@ async function downloadZip() {
     const res = await fetch('/download-zip', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({bill_nos: selected})});
     if (res.ok) {
         const blob = await res.blob();
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Documents.zip'; a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Documents_Bundle.zip'; a.click();
     }
 }
 
@@ -548,6 +615,43 @@ async function emailSingle(bno) {
     const res = await fetch(`/email-invoice/${encodeURIComponent(bno)}`, {method:'POST'});
     const d = await res.json();
     alert(d.message || d.error);
+}
+
+// --- GSTR-1 MODAL LOGIC ---
+function openGstrModal() {
+    const months = new Set();
+    allInvoices.filter(i => (i.doc_category === 'sale' || !i.doc_category)).forEach(inv => {
+        const d = inv.invoice_date;
+        if(d) {
+            const p = d.split('-');
+            if(p.length === 3) {
+                // Handle DD-Mon-YYYY
+                const monthName = isNaN(parseInt(p[1])) ? p[1] : new Date(0, parseInt(p[1])-1).toLocaleString('default', { month: 'short' });
+                months.add(`${monthName} ${p[2]}`);
+            }
+        }
+    });
+    
+    let options = [...months].map(m => ({value: m, text: m}));
+    if (options.length === 0) options = [{value: '', text: 'No Sales Data Found'}];
+
+    if(gstrTs) gstrTs.destroy();
+    gstrTs = new TomSelect('#gstrMonthSelect', {
+        options: options,
+        create: false,
+        placeholder: 'Select Month & Year...'
+    });
+    
+    document.getElementById('gstrModal').classList.remove('hidden');
+}
+
+function closeGstrModal() { document.getElementById('gstrModal').classList.add('hidden'); }
+
+function downloadGstr1() {
+    const m = gstrTs ? gstrTs.getValue() : '';
+    if(!m) return alert("Please select a month to download.");
+    window.location.href = `/download-gstr1?month_year=${encodeURIComponent(m)}`;
+    closeGstrModal();
 }
 
 // ---- OUTSTANDING ----
@@ -570,15 +674,15 @@ async function loadOutstanding() {
             <tr class="border-b hover:bg-gray-50">
                 <td class="p-3 font-medium text-gray-700">${o.bill_no}</td>
                 <td class="p-3 text-gray-500">${o.invoice_date}</td>
-                <td class="p-3 text-gray-700">${o.client_name}</td>
+                <td class="p-3 text-gray-800 font-semibold">${o.client_name}</td>
                 <td class="p-3 text-right">₹${fmt(o.grand_total)}</td>
                 <td class="p-3 text-right text-green-600">₹${fmt(o.paid)}</td>
                 <td class="p-3 text-right font-bold text-red-600">₹${fmt(o.balance)}</td>
                 <td class="p-3 text-center font-bold ${ageClass[o.age_bucket]}">${o.days_overdue}d</td>
                 <td class="p-3 text-center">
-                    <button onclick="quickPayment('${o.bill_no}','${o.client_name.replace(/'/g,"\\'")}',${o.balance})" class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-lg font-bold hover:bg-green-200">Pay</button>
+                    <button onclick="quickPayment('${o.bill_no}','${o.client_name.replace(/'/g,"\\'")}',${o.balance})" class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-lg font-bold hover:bg-green-200 border border-green-200 transition">Receive Pay</button>
                 </td>
-            </tr>`).join('') || '<tr><td colspan="8" class="p-6 text-center text-gray-400">No outstanding invoices. 🎉</td></tr>';
+            </tr>`).join('') || '<tr><td colspan="8" class="p-8 text-center text-gray-400">No outstanding invoices. All clear! 🎉</td></tr>';
     } catch(e) {}
 }
 
@@ -588,36 +692,42 @@ function renderPaymentsTable(data) {
         <tr class="border-b hover:bg-gray-50">
             <td class="p-3 text-gray-500 text-xs">${p.payment_date||'-'}</td>
             <td class="p-3 font-medium text-gray-700">${p.party_name}</td>
-            <td class="p-3 text-right font-semibold text-gray-800">₹${fmt(p.amount)}</td>
+            <td class="p-3 text-right font-mono font-bold text-gray-800">₹${fmt(p.amount)}</td>
             <td class="p-3 text-center">
-                <span class="text-xs px-2 py-0.5 rounded-full font-bold ${p.payment_type==='receipt'?'bg-green-100 text-green-700':'bg-blue-100 text-blue-700'}">
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide border ${p.payment_type==='receipt'?'bg-green-50 text-green-600 border-green-200':'bg-blue-50 text-blue-600 border-blue-200'}">
                     ${p.payment_type==='receipt'?'Receipt':'Payment'}
                 </span>
             </td>
-        </tr>`).join('') || '<tr><td colspan="4" class="p-4 text-center text-gray-400">No payments recorded.</td></tr>';
+        </tr>`).join('') || '<tr><td colspan="4" class="p-6 text-center text-gray-400">No payments recorded.</td></tr>';
 }
 
 function quickPayment(billNo, partyName, balance) {
     switchTab('payments');
-    document.getElementById('pay_party').value = partyName;
+    if (payPartyTs) {
+        payPartyTs.addOption({value: partyName, text: partyName});
+        payPartyTs.setValue(partyName);
+    }
     document.getElementById('pay_ref').value = billNo;
     document.getElementById('pay_amount').value = balance.toFixed(2);
-    document.getElementById('pay_type').value = 'receipt';
+    if(tsPayType) tsPayType.setValue('receipt');
     document.querySelector('#panel-payments').scrollIntoView({behavior:'smooth'});
 }
 
 async function submitPayment() {
-    const party = document.getElementById('pay_party').value.trim();
+    const party = payPartyTs ? payPartyTs.getValue() : '';
     const amount = parseFloat(document.getElementById('pay_amount').value);
     if (!party || !amount) return alert('Party name and amount are required.');
+
+    const rawDate = document.getElementById('pay_date').value;
+    const formattedDate = formatToDDMonYYYY(rawDate);
 
     const data = {
         party_name: party,
         amount: amount,
-        payment_type: document.getElementById('pay_type').value,
-        mode: document.getElementById('pay_mode').value,
+        payment_type: tsPayType ? tsPayType.getValue() : 'receipt',
+        mode: tsPayMode ? tsPayMode.getValue() : 'Cash',
         ref_invoice: document.getElementById('pay_ref').value.trim(),
-        payment_date: document.getElementById('pay_date').value,
+        payment_date: formattedDate,
         notes: document.getElementById('pay_notes').value.trim()
     };
 
@@ -626,7 +736,9 @@ async function submitPayment() {
         const d = await res.json();
         if (d.success) {
             alert('Payment saved successfully!');
-            ['pay_party','pay_amount','pay_ref','pay_notes'].forEach(id => document.getElementById(id).value = '');
+            if (payPartyTs) payPartyTs.clear();
+            ['pay_amount','pay_ref','pay_notes'].forEach(id => document.getElementById(id).value = '');
+            setDefaultDates();
             await loadPayments();
             await loadInvoices();
             loadDashboardData();
@@ -635,9 +747,8 @@ async function submitPayment() {
 }
 
 // ---- LEDGER ----
-async function loadLedger() {
-    const party = document.getElementById('ledgerParty').value.trim();
-    if (!party) return alert('Enter a party name.');
+async function loadLedger(party) {
+    if (!party) return;
 
     try {
         const res = await fetch(`/ledger/${encodeURIComponent(party)}`);
@@ -652,27 +763,25 @@ async function loadLedger() {
             const balColor = e.balance > 0 ? 'text-red-600' : e.balance < 0 ? 'text-green-600' : 'text-gray-500';
             return `<tr class="border-b hover:bg-gray-50 text-sm">
                 <td class="p-3 text-gray-500">${e.date}</td>
-                <td class="p-3 font-mono text-xs text-gray-600">${e.doc_no}</td>
+                <td class="p-3 font-mono text-xs text-gray-600 font-bold">${e.doc_no}</td>
                 <td class="p-3 text-gray-700">${e.narration}</td>
                 <td class="p-3 text-right ${e.debit>0?'text-red-600 font-semibold':'text-gray-300'}">${e.debit>0?'₹'+fmt(e.debit):'-'}</td>
                 <td class="p-3 text-right ${e.credit>0?'text-green-600 font-semibold':'text-gray-300'}">${e.credit>0?'₹'+fmt(e.credit):'-'}</td>
                 <td class="p-3 text-right font-bold ${balColor}">₹${fmt(Math.abs(e.balance))} ${e.balance>0?'Dr':e.balance<0?'Cr':''}</td>
             </tr>`;
-        }).join('') || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No transactions found.</td></tr>';
+        }).join('') || '<tr><td colspan="6" class="p-6 text-center text-gray-400">No transactions found for this party.</td></tr>';
 
-        // Summary
         document.getElementById('ledger_dr').textContent = fmt(totalDr);
         document.getElementById('ledger_cr').textContent = fmt(totalCr);
         const closing = data.closing_balance;
         document.getElementById('ledger_balance_text').textContent = `₹${fmt(Math.abs(closing))} ${closing>0?'Dr':closing<0?'Cr':''}`;
         const bc = document.getElementById('ledger_balance_card');
-        bc.className = `rounded-xl p-3 border text-center ${closing>0?'bg-red-50 border-red-100':'bg-green-50 border-green-100'}`;
-        document.getElementById('ledger_balance_text').className = `text-lg font-extrabold ${closing>0?'text-red-600':'text-green-600'}`;
+        bc.className = `rounded-xl p-4 border text-center flex flex-col justify-center ${closing>0?'bg-red-50 border-red-100':'bg-green-50 border-green-100'}`;
+        document.getElementById('ledger_balance_text').className = `text-2xl font-extrabold ${closing>0?'text-red-600':'text-green-600'}`;
         document.getElementById('ledgerSummary').classList.remove('hidden');
     } catch(e) { alert('Error loading ledger'); }
 }
 
-// ---- UTILS ----
 function fmt(n) {
     if (n === undefined || n === null) return '--';
     return parseFloat(n).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});

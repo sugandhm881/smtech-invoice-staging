@@ -11,177 +11,102 @@
 
 <style>
   :root {
-    --ink: #0f1117;
-    --ink-2: #3d4050;
-    --ink-3: #7a7d91;
-    --surface: #ffffff;
-    --surface-2: #f7f8fb;
-    --surface-3: #eef0f6;
-    --border: #e2e5ef;
-    --border-2: #cdd1e0;
-    --accent-sale: #f97316;
-    --accent-sale-light: #fff7ed;
-    --accent-purchase: #3b82f6;
-    --accent-purchase-light: #eff6ff;
-    --green: #10b981;
-    --green-light: #ecfdf5;
-    --red: #ef4444;
-    --red-light: #fef2f2;
+    --ink: #0f1117; --ink-2: #3d4050; --ink-3: #7a7d91;
+    --surface: #ffffff; --surface-2: #f7f8fb; --surface-3: #eef0f6;
+    --border: #e2e5ef; --border-2: #cdd1e0;
+    --accent-sale: #f97316; --accent-sale-light: #fff7ed;
+    --accent-purchase: #3b82f6; --accent-purchase-light: #eff6ff;
+    --green: #10b981; --green-light: #ecfdf5;
+    --red: #ef4444; --red-light: #fef2f2;
     --purple: #8b5cf6;
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
     --shadow: 0 4px 16px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.04);
     --shadow-lg: 0 12px 40px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.06);
-    --radius: 12px;
-    --radius-sm: 8px;
-    --radius-lg: 16px;
+    --radius: 12px; --radius-sm: 8px; --radius-lg: 16px;
     --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
-
   * { box-sizing: border-box; }
-
-  body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    background: #f0f2f8;
-    color: var(--ink);
-    min-height: 100vh;
-    font-size: 14px;
-    line-height: 1.5;
-  }
-
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0f2f8; color: var(--ink); min-height: 100vh; font-size: 14px; line-height: 1.5; }
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 99px; }
 
-  .app-shell {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 20px 16px 60px;
-  }
+  .app-shell { max-width: 1280px; margin: 0 auto; padding: 20px 16px 60px; }
 
-  /* TOPBAR */
-  .topbar {
-    background: var(--surface);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    gap: 12px;
-    border: 1px solid var(--border);
-  }
+  .topbar { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 12px; border: 1px solid var(--border); }
   .topbar-brand { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
   .topbar-logo { height: 40px; object-fit: contain; }
   .topbar-title { font-size: 17px; font-weight: 800; color: var(--ink); letter-spacing: -0.3px; }
   .topbar-subtitle { font-size: 10px; font-weight: 600; color: var(--ink-3); letter-spacing: 1.5px; text-transform: uppercase; }
   .topbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-  /* BUTTONS */
-  .btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 14px; border-radius: var(--radius-sm);
-    font-size: 13px; font-weight: 600; cursor: pointer;
-    transition: var(--transition); border: none; outline: none;
-    white-space: nowrap; text-decoration: none; font-family: inherit;
-  }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; transition: var(--transition); border: none; outline: none; white-space: nowrap; text-decoration: none; font-family: inherit; }
   .btn svg { width: 15px; height: 15px; }
   .btn-ghost { background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--border); }
   .btn-ghost:hover { background: var(--surface-3); border-color: var(--border-2); }
   .btn-danger { background: var(--red-light); color: var(--red); border: 1px solid #fca5a5; }
   .btn-danger:hover { background: #fee2e2; }
-  .btn-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; box-shadow: 0 2px 8px rgba(59,130,246,0.3); }
-  .btn-blue:hover { box-shadow: 0 4px 14px rgba(59,130,246,0.4); transform: translateY(-1px); }
 
-  /* DROPDOWN */
   .dropdown { position: relative; }
-  .dropdown-menu {
-    position: absolute; right: 0; top: calc(100% + 6px);
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); box-shadow: var(--shadow-lg);
-    min-width: 190px; z-index: 100; display: none; overflow: hidden;
-  }
+  .dropdown-menu { position: absolute; right: 0; top: calc(100% + 6px); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow-lg); min-width: 190px; z-index: 100; display: none; overflow: hidden; }
   .dropdown:hover .dropdown-menu { display: block; }
-  .dropdown-menu a {
-    display: flex; align-items: center; gap: 8px;
-    padding: 10px 14px; font-size: 13px; color: var(--ink-2);
-    text-decoration: none; transition: var(--transition);
-  }
+  .dropdown-menu a { display: flex; align-items: center; gap: 8px; padding: 10px 14px; font-size: 13px; color: var(--ink-2); text-decoration: none; transition: var(--transition); }
   .dropdown-menu a:hover { background: var(--surface-2); color: var(--ink); }
   .dropdown-menu a + a { border-top: 1px solid var(--border); }
 
-  /* VIEW-AS */
-  .view-as-bar {
-    display: flex; align-items: center; gap: 8px;
-    background: #fffbeb; border: 1px solid #fde68a;
-    border-radius: var(--radius-sm); padding: 6px 12px;
-    font-size: 12px; color: #92400e; font-weight: 600;
-  }
-  .view-as-bar select { background: transparent; border: none; outline: none; font-size: 12px; font-weight: 700; color: #92400e; cursor: pointer; }
-
-  /* CARD */
   .card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
   .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
   .card-title { font-size: 13px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 8px; }
   .card-title .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-  /* MODE PILLS */
   .mode-pill-group { display: flex; gap: 5px; background: var(--surface-2); padding: 4px; border-radius: 10px; border: 1px solid var(--border); }
   .mode-pill { padding: 7px 18px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: var(--transition); color: var(--ink-3); border: 1px solid transparent; user-select: none; }
   .mode-pill.active-sale { background: #fff7ed; color: #c2410c; border-color: #fed7aa; box-shadow: 0 1px 4px rgba(249,115,22,0.2); }
   .mode-pill.active-purchase { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; box-shadow: 0 1px 4px rgba(59,130,246,0.2); }
 
-  /* CONTROL BAR */
   .control-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; padding: 16px 20px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
   .ctrl-group { display: flex; flex-direction: column; gap: 5px; }
-  .ctrl-label { font-size: 10px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.8px; }
+  .ctrl-label { font-size: 10px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px;}
 
-  /* FORM ELEMENTS */
-  input, select, textarea {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 13px; color: var(--ink);
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); padding: 9px 12px;
-    transition: var(--transition); outline: none; width: 100%;
-  }
-  input:focus, select:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
-  input[readonly] { background: var(--surface-2); color: var(--ink-3); }
-  select { cursor: pointer; }
+  input, textarea { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: var(--ink); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; transition: var(--transition); outline: none; width: 100%; }
+  input:focus, textarea:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
+  input[readonly] { background: var(--surface-2); color: var(--ink-3); cursor: not-allowed; }
 
-  /* TOM SELECT */
-  .ts-wrapper .ts-control {
-    border-radius: var(--radius-sm) !important; border: 1px solid var(--border) !important;
-    padding: 8px 12px !important; background: var(--surface) !important;
-    box-shadow: none !important; font-size: 13px !important;
-    font-family: 'Plus Jakarta Sans', sans-serif !important; min-height: 38px !important;
-  }
+  /* ═══ TOM SELECT GLOBAL STYLING & WIDTH FIXES ═══ */
+  .ts-wrapper .ts-control { border-radius: var(--radius-sm) !important; border: 1px solid var(--border) !important; padding: 8.5px 12px !important; background: var(--surface) !important; box-shadow: none !important; font-size: 13px !important; font-family: 'Plus Jakarta Sans', sans-serif !important; min-height: 38px !important; transition: var(--transition); }
   .ts-wrapper.focus .ts-control { border-color: #93c5fd !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.12) !important; }
-  .ts-dropdown { border-radius: var(--radius-sm) !important; box-shadow: var(--shadow-lg) !important; font-family: 'Plus Jakarta Sans', sans-serif !important; }
+  .ts-dropdown { border-radius: var(--radius-sm) !important; box-shadow: var(--shadow-lg) !important; font-family: 'Plus Jakarta Sans', sans-serif !important; margin-top: 4px !important; border: 1px solid var(--border) !important; }
+  .ts-dropdown .option { padding: 8px 12px !important; font-size: 13px !important; transition: background 0.15s; }
+  .ts-dropdown .option.active, .ts-dropdown .option:hover { background: var(--surface-2) !important; color: var(--ink) !important; }
+  
+  /* Fix text truncation to prevent dropdown overlapping the caret */
+  .ts-wrapper.single .ts-control { padding-right: 2.5rem !important; }
+  .ts-wrapper.single .ts-control .item { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: block; }
+  .ts-wrapper.disabled .ts-control { background: var(--surface-2) !important; opacity: 0.7; cursor: not-allowed; }
 
-  /* NON-GST TOGGLE */
-  .toggle-wrap { display: flex; align-items: center; gap: 8px; background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-sm); padding: 8px 12px; cursor: pointer; }
-  .toggle-wrap input { width: 15px; height: 15px; accent-color: #f97316; cursor: pointer; flex-shrink: 0; }
+  /* Autocomplete list styling for Emails */
+  .autocomplete-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #d1d5db; max-height: 200px; overflow-y: auto; z-index: 50; border-radius: var(--radius-sm); box-shadow: var(--shadow-lg); margin-top: 4px; }
+  .autocomplete-item { padding: 8px 12px; cursor: pointer; transition: background 0.15s; font-size: 13px; color: var(--ink-2); }
+  .autocomplete-item:hover, .autocomplete-item.focused { background-color: var(--surface-2); color: var(--ink); }
 
-  /* PARTY SECTION */
+  .toggle-wrap { display: flex; align-items: center; gap: 8px; background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-sm); padding: 8.5px 12px; cursor: pointer; height: 38px; }
+  .toggle-wrap input { width: 15px; height: 15px; accent-color: #f97316; cursor: pointer; flex-shrink: 0; margin: 0; }
+
   .party-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px; }
   @media(max-width:768px) { .party-grid { grid-template-columns: 1fr; } }
-
   .party-block { border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
   .party-block-header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
   .party-block-title { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
   .party-block-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
-
   .bill-to-block { border-color: #bfdbfe; }
   .bill-to-block .party-block-header { background: #eff6ff; }
   .bill-to-block .party-block-title { color: #1d4ed8; }
   .ship-to-block .party-block-header { background: var(--surface-2); }
   .ship-to-block .party-block-title { color: var(--ink-2); }
-
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
   .field-label { font-size: 10px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 4px; }
 
-  /* ITEMS */
   .items-section { padding: 20px; }
   .items-table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
   table.items-table { width: 100%; min-width: 880px; border-collapse: collapse; }
@@ -191,9 +116,11 @@
   table.items-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
   table.items-table tr:last-child td { border-bottom: none; }
   table.items-table tbody tr:hover { background: var(--surface-2); }
-  table.items-table td input, table.items-table td select { padding: 6px 8px; font-size: 12.5px; border-radius: 6px; }
-  .amount-cell input { background: transparent; border: none; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+  table.items-table td input { padding: 7px 8px; font-size: 12.5px; border-radius: 6px; }
+  table.items-table td .ts-wrapper .ts-control { min-height: 32px !important; padding: 6px 10px !important; font-size: 12.5px !important; }
+  
   .amount-cell { background: var(--surface-2); }
+  .amount-cell input { background: transparent; border: none; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--ink); width: 100%; }
 
   .stock-chip { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 99px; letter-spacing: 0.3px; margin-top: 3px; }
   .stock-chip.in  { background: var(--green-light); color: #065f46; }
@@ -204,17 +131,14 @@
   .add-row-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px dashed var(--border-2); color: var(--ink-2); font-size: 13px; font-weight: 600; cursor: pointer; transition: var(--transition); margin-top: 10px; font-family: inherit; }
   .add-row-btn:hover { background: var(--surface-3); border-color: #93c5fd; color: #2563eb; }
 
-  .row-remove { width: 26px; height: 26px; border-radius: 6px; background: var(--red-light); color: var(--red); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; transition: var(--transition); }
+  .row-remove { width: 28px; height: 28px; border-radius: 6px; background: var(--red-light); color: var(--red); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; transition: var(--transition); }
   .row-remove:hover { background: #fee2e2; }
 
-  /* TOTALS */
   .totals-panel { background: var(--surface-2); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px 20px; }
   .totals-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 13px; color: var(--ink-2); border-bottom: 1px dashed var(--border); }
   .totals-row:last-child { border-bottom: none; }
   .totals-row.grand { margin-top: 8px; padding-top: 12px; font-size: 20px; font-weight: 800; color: var(--ink); }
-  .totals-row.grand span:last-child { font-family: 'JetBrains Mono', monospace; }
 
-  /* GENERATE BTN */
   .generate-btn { width: 100%; padding: 16px 32px; border-radius: var(--radius); font-size: 16px; font-weight: 800; cursor: pointer; transition: var(--transition); border: none; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: inherit; letter-spacing: -0.2px; }
   .generate-btn.sale { background: linear-gradient(135deg, #f97316, #ea580c, #dc2626); color: white; box-shadow: 0 4px 20px rgba(249,115,22,0.4); }
   .generate-btn.sale:hover { box-shadow: 0 8px 32px rgba(249,115,22,0.5); transform: translateY(-2px); }
@@ -223,19 +147,16 @@
   .generate-btn.edit { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; box-shadow: 0 4px 20px rgba(139,92,246,0.4); }
   .generate-btn:disabled { opacity: 0.7; transform: none !important; cursor: not-allowed; }
 
-  /* EDIT BANNER */
   .edit-banner { background: linear-gradient(90deg, #f5f3ff, #ede9fe); border: 1px solid #c4b5fd; border-radius: var(--radius-sm); padding: 10px 16px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: #5b21b6; font-weight: 600; margin: 12px 20px 0; }
   .edit-banner svg { width: 16px; height: 16px; flex-shrink: 0; }
 
-  /* MANUAL BLOCK */
   .manual-block { display: none; background: #fefce8; border: 1px solid #fef08a; border-radius: var(--radius-sm); padding: 14px 16px; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 20px 0; }
   .manual-block.visible { display: grid; }
 
-  /* HISTORY */
   .history-section { padding: 20px; }
   .search-wrap { position: relative; }
-  .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--ink-3); pointer-events: none; }
-  .search-wrap input { padding-left: 32px; min-width: 220px; }
+  .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--ink-3); pointer-events: none; z-index: 2; }
+  .search-wrap input { padding-left: 32px; min-width: 220px; margin:0; }
 
   table.hist-table { width: 100%; border-collapse: collapse; }
   table.hist-table th { padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--ink-3); background: var(--surface-2); border-bottom: 1px solid var(--border); white-space: nowrap; position: sticky; top: 0; z-index: 1; }
@@ -262,20 +183,16 @@
   .act-btn svg { width: 16px; height: 16px; }
 
   .hist-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: #3b82f6; }
-
   input.mono { font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px; }
-  input::-webkit-calendar-picker-indicator { opacity: 1; }
 
-  @keyframes spin { to { transform: rotate(360deg); } }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-  .animate-in { animation: fadeIn 0.25s ease forwards; }
+  .ship-to-section.hidden-service { display: none !important; }
+  .rate-col-header { white-space: nowrap; }
 </style>
 </head>
 
 <body>
 <div class="app-shell">
 
-<!-- ═══ TOPBAR ═══ -->
 <div class="topbar">
   <div class="topbar-brand">
     {% if profile.get('logo_base64') %}
@@ -289,17 +206,11 @@
     </div>
   </div>
 
-  {% if current_user.is_master and viewing_user != current_user.id %}
-  <div class="view-as-bar">
-    👁 Viewing:&nbsp;<strong>{{ viewing_user }}</strong>
-  </div>
-  {% endif %}
-
   <div class="topbar-actions">
     {% if current_user.is_master %}
-    <div style="display:flex;align-items:center;gap:6px;">
-      <span style="font-size:11px;font-weight:700;color:var(--ink-3);">VIEW AS</span>
-      <select onchange="window.location.href='/set-view-mode/'+this.value" style="width:auto;padding:6px 10px;font-size:12px;border-radius:6px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-right:10px;">
+      <span style="font-size:10px;font-weight:800;color:var(--ink-3);letter-spacing:0.5px; white-space: nowrap;">VIEW AS</span>
+      <select id="view_as_select" style="min-width: 180px;">
         {% for u in all_users %}
           <option value="{{ u }}" {% if viewing_user == u %}selected{% endif %}>{{ u }}{% if u == current_user.id %} (Me){% endif %}</option>
         {% endfor %}
@@ -311,41 +222,29 @@
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Dashboard
     </a>
-
     <a href="/profile" class="btn btn-ghost">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
       {% if current_user.is_master %}Settings{% else %}Profile{% endif %}
     </a>
-
     <div class="dropdown">
       <button class="btn btn-ghost">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         Reports ▾
       </button>
       <div class="dropdown-menu">
-        <a href="/download-report">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          Standard Excel
-        </a>
-        <a href="/download-gstr1" style="color:#059669;font-weight:700;">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          GSTR-1 Export
-        </a>
+        <a href="/download-report"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Standard Excel</a>
+        <a href="/download-gstr1" style="color:#059669;font-weight:700;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>GSTR-1 Export</a>
       </div>
     </div>
-
     <a href="{{ url_for('logout') }}" class="btn btn-danger">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
       Logout
     </a>
   </div>
 </div>
-<!-- /TOPBAR -->
 
-<!-- ═══ DOCUMENT BUILDER ═══ -->
 <div class="card">
 
-  <!-- CONTROL BAR -->
   <div class="control-bar">
     <div class="ctrl-group">
       <span class="ctrl-label">Mode</span>
@@ -366,8 +265,7 @@
     </div>
 
     <div class="ctrl-group">
-      <span class="ctrl-label">Tax Mode</span>
-      <label class="toggle-wrap">
+      <span class="ctrl-label" style="opacity:0;">Tax</span> <label class="toggle-wrap">
         <input type="checkbox" id="is_non_gst">
         <span style="font-size:13px;font-weight:700;color:#92400e;">Non-GST Bill</span>
         <span style="font-size:11px;color:#a16207;">(0% Tax)</span>
@@ -376,7 +274,7 @@
 
     <div class="ctrl-group">
       <span class="ctrl-label">Document Type</span>
-      <select id="doc_type_select" onchange="handleDocTypeChange()" style="min-width:240px;font-weight:600;"></select>
+      <select id="doc_type_select" style="min-width: 280px;"></select>
     </div>
 
     <div class="ctrl-group" id="reference_wrapper" style="display:none;">
@@ -386,22 +284,19 @@
 
     <div class="ctrl-group" style="margin-left:auto;">
       <span class="ctrl-label">Numbering</span>
-      <select id="generation_type" style="min-width:185px;font-weight:600;">
+      <select id="generation_type" style="min-width: 220px;">
         <option value="auto">Auto-generate Number</option>
         <option value="manual">Enter Manually</option>
       </select>
     </div>
   </div>
-  <!-- /CONTROL BAR -->
 
-  <!-- EDIT BANNER -->
   <div id="editBanner" class="edit-banner" style="display:none;">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
     Editing document — <strong id="editBannerDocNo" style="margin-left:4px;"></strong>
     <button onclick="resetForm()" style="margin-left:auto;padding:4px 12px;border-radius:6px;background:#ede9fe;border:1px solid #c4b5fd;color:#5b21b6;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">✕ Cancel</button>
   </div>
 
-  <!-- MANUAL DATE/NUMBER -->
   <div id="manual_details" class="manual-block">
     <div>
       <div class="field-label">Manual Doc Number</div>
@@ -413,10 +308,7 @@
     </div>
   </div>
 
-  <!-- BILL TO / SHIP TO -->
   <div class="party-grid">
-
-    <!-- Bill To -->
     <div class="party-block bill-to-block">
       <div class="party-block-header">
         <span class="party-block-title" id="billToHeader">📋 Bill To (Client)</span>
@@ -431,46 +323,21 @@
           <input type="text" id="client_name" placeholder="Full name" style="font-weight:700;">
         </div>
         <div class="field-row">
-          <div>
-            <div class="field-label">Mobile</div>
-            <input type="text" id="client_mobile" placeholder="Mobile number">
-          </div>
-          <div>
-            <div class="field-label">Email</div>
-            <input type="email" id="client_email" placeholder="email@domain.com">
-          </div>
+          <div><div class="field-label">Mobile</div><input type="text" id="client_mobile" placeholder="Mobile number"></div>
+          <div><div class="field-label">Email</div><input type="email" id="client_email" placeholder="email@domain.com" autocomplete="off"></div>
         </div>
-        <div>
-          <div class="field-label">Address Line 1</div>
-          <input type="text" id="client_address1" placeholder="Street / Building">
-        </div>
-        <div>
-          <div class="field-label">Address Line 2</div>
-          <input type="text" id="client_address2" placeholder="Area / Landmark">
-        </div>
+        <div><div class="field-label">Address Line 1</div><input type="text" id="client_address1" placeholder="Street / Building"></div>
+        <div><div class="field-label">Address Line 2</div><input type="text" id="client_address2" placeholder="Area / Landmark"></div>
         <div class="field-row-3">
-          <div>
-            <div class="field-label">Pincode</div>
-            <input type="text" id="client_pincode" placeholder="6 digits" maxlength="6" oninput="fetchPincodeData('client')">
-          </div>
-          <div>
-            <div class="field-label">District</div>
-            <input type="text" id="client_district" placeholder="Auto-fill" readonly>
-          </div>
-          <div>
-            <div class="field-label">State</div>
-            <select id="client_state"><option value="">Select State</option></select>
-          </div>
+          <div><div class="field-label">Pincode</div><input type="text" id="client_pincode" placeholder="6 digits" maxlength="6" oninput="fetchPincodeData('client')"></div>
+          <div><div class="field-label">District</div><input type="text" id="client_district" placeholder="Auto-fill" readonly></div>
+          <div><div class="field-label">State</div><select id="client_state" style="min-width: 140px;"></select></div>
         </div>
-        <div>
-          <div class="field-label">GSTIN</div>
-          <input type="text" id="client_gstin" placeholder="07AABCS1429B1ZB" class="mono" style="text-transform:uppercase;">
-        </div>
+        <div><div class="field-label">GSTIN</div><input type="text" id="client_gstin" placeholder="07AABCS1429B1ZB" class="mono" style="text-transform:uppercase;"></div>
       </div>
     </div>
 
-    <!-- Ship To -->
-    <div class="party-block ship-to-block">
+    <div class="party-block ship-to-block ship-to-section" id="shipToBlock">
       <div class="party-block-header">
         <span class="party-block-title" id="shipToHeader">🚚 Ship To</span>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;font-weight:600;color:var(--ink-3);">
@@ -479,72 +346,40 @@
         </label>
       </div>
       <div id="ship_to_container" class="party-block-body">
-        <div>
-          <div class="field-label">Receiver Name</div>
-          <input type="text" id="shipto_name" placeholder="Receiver name">
-        </div>
+        <div><div class="field-label">Receiver Name</div><input type="text" id="shipto_name" placeholder="Receiver name"></div>
         <div class="field-row">
-          <div>
-            <div class="field-label">Mobile</div>
-            <input type="text" id="shipto_mobile" placeholder="Mobile">
-          </div>
-          <div>
-            <div class="field-label">Email</div>
-            <input type="email" id="shipto_email" placeholder="Email">
-          </div>
+          <div><div class="field-label">Mobile</div><input type="text" id="shipto_mobile" placeholder="Mobile"></div>
+          <div><div class="field-label">Email</div><input type="email" id="shipto_email" placeholder="Email" autocomplete="off"></div>
         </div>
-        <div>
-          <div class="field-label">Address Line 1</div>
-          <input type="text" id="shipto_address1" placeholder="Street / Building">
-        </div>
-        <div>
-          <div class="field-label">Address Line 2</div>
-          <input type="text" id="shipto_address2" placeholder="Area / Landmark">
-        </div>
+        <div><div class="field-label">Address Line 1</div><input type="text" id="shipto_address1" placeholder="Street / Building"></div>
+        <div><div class="field-label">Address Line 2</div><input type="text" id="shipto_address2" placeholder="Area / Landmark"></div>
         <div class="field-row-3">
-          <div>
-            <div class="field-label">Pincode</div>
-            <input type="text" id="shipto_pincode" placeholder="6 digits" maxlength="6" oninput="fetchPincodeData('shipto')">
-          </div>
-          <div>
-            <div class="field-label">District</div>
-            <input type="text" id="shipto_district" placeholder="Auto-fill" readonly>
-          </div>
-          <div>
-            <div class="field-label">State</div>
-            <select id="shipto_state"><option value="">Select State</option></select>
-          </div>
+          <div><div class="field-label">Pincode</div><input type="text" id="shipto_pincode" placeholder="6 digits" maxlength="6" oninput="fetchPincodeData('shipto')"></div>
+          <div><div class="field-label">District</div><input type="text" id="shipto_district" placeholder="Auto-fill" readonly></div>
+          <div><div class="field-label">State</div><select id="shipto_state" style="min-width: 140px;"></select></div>
         </div>
-        <div>
-          <div class="field-label">GSTIN</div>
-          <input type="text" id="shipto_gstin" placeholder="Auto-filled" class="mono" readonly>
-        </div>
-        <div>
-          <div class="field-label">PO Number (Optional)</div>
-          <input type="text" id="po_number" placeholder="Client / Vendor PO reference">
-        </div>
+        <div><div class="field-label">GSTIN</div><input type="text" id="shipto_gstin" placeholder="Auto-filled" class="mono" readonly></div>
+        <div><div class="field-label">PO Number (Optional)</div><input type="text" id="po_number" placeholder="Client / Vendor PO reference"></div>
       </div>
     </div>
-
   </div>
-  <!-- /PARTY GRID -->
 
-  <!-- ITEMS TABLE -->
   <div class="items-section">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
       <span style="width:3px;height:16px;border-radius:2px;background:var(--accent-sale);display:inline-block;" id="itemAccentBar"></span>
       <span style="font-size:13px;font-weight:800;color:var(--ink);">Document Items</span>
+      <span id="serviceModeNotice" style="display:none;font-size:11px;font-weight:600;color:#7c3aed;background:#f5f3ff;padding:3px 10px;border-radius:99px;border:1px solid #c4b5fd;">💼 Service Mode — Rate entered as Excl. Tax</span>
     </div>
     <div class="items-table-wrap">
       <table class="items-table" id="itemsTable">
         <thead>
           <tr id="tableHeaderRow">
             <th style="text-align:left;min-width:230px;">Particulars / Item</th>
-            <th style="text-align:center;width:88px;">HSN</th>
+            <th style="text-align:center;width:88px;">HSN/SAC</th>
             <th style="text-align:center;width:76px;">Qty</th>
-            <th style="text-align:right;width:120px;">Rate (Incl. Tax)</th>
+            <th style="text-align:right;width:120px;" id="rateColHeader">Rate (Incl. Tax)</th>
             <th style="text-align:center;width:70px;">Disc %</th>
-            <th style="text-align:center;width:96px;">Tax %</th>
+            <th style="text-align:center;width:110px;">Tax %</th>
             <th style="text-align:right;width:110px;">Total</th>
             <th style="width:42px;"></th>
           </tr>
@@ -558,42 +393,23 @@
     </button>
   </div>
 
-  <!-- TOTALS + CTA -->
   <div style="padding:0 20px 24px;display:flex;justify-content:flex-end;">
     <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:14px;">
       <div class="totals-panel">
-        <div class="totals-row">
-          <span>Taxable Amount</span>
-          <span>₹ <span id="subTotal">0.00</span></span>
-        </div>
-        <div class="totals-row">
-          <span>IGST</span>
-          <span>₹ <span id="igst">0.00</span></span>
-        </div>
-        <div class="totals-row">
-          <span>CGST</span>
-          <span>₹ <span id="cgst">0.00</span></span>
-        </div>
-        <div class="totals-row">
-          <span>SGST</span>
-          <span>₹ <span id="sgst">0.00</span></span>
-        </div>
-        <div class="totals-row grand">
-          <span>Grand Total</span>
-          <span>₹ <span id="grandTotal">0.00</span></span>
-        </div>
+        <div class="totals-row"><span>Taxable Amount</span><span>₹ <span id="subTotal">0.00</span></span></div>
+        <div class="totals-row"><span>IGST</span><span>₹ <span id="igst">0.00</span></span></div>
+        <div class="totals-row"><span>CGST</span><span>₹ <span id="cgst">0.00</span></span></div>
+        <div class="totals-row"><span>SGST</span><span>₹ <span id="sgst">0.00</span></span></div>
+        <div class="totals-row grand"><span>Grand Total</span><span>₹ <span id="grandTotal">0.00</span></span></div>
       </div>
       <button id="generateBtn" class="generate-btn sale">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        Generate Sales Document PDF
+        Create Sale Invoice
       </button>
     </div>
   </div>
-
 </div>
-<!-- /DOCUMENT BUILDER -->
 
-<!-- ═══ HISTORY ═══ -->
 <div class="card" style="margin-top:20px;">
   <div class="card-header">
     <div class="card-title">
@@ -612,11 +428,16 @@
   </div>
 
   <div class="history-section">
-    <div style="margin-bottom:14px;">
+    <div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
       <div class="search-wrap" style="display:inline-block;">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         <input type="text" id="historySearch" placeholder="Search doc no. or party..." oninput="filterHistory()">
       </div>
+      <select id="histModeFilter" style="min-width: 200px;">
+        <option value="">All Documents</option>
+        <option value="sale">Sale Only</option>
+        <option value="purchase">Purchase Only</option>
+      </select>
     </div>
 
     <div style="overflow-x:auto;max-height:420px;border-radius:var(--radius-sm);border:1px solid var(--border);">
@@ -628,7 +449,7 @@
             <th>Date</th>
             <th>Party</th>
             <th style="text-align:right;">Amount</th>
-            <th style="text-align:center;">Status</th>
+            <th style="text-align:center;">Type</th>
             <th style="text-align:center;">Actions</th>
           </tr>
         </thead>
@@ -644,12 +465,11 @@
     </div>
   </div>
 </div>
-<!-- /HISTORY -->
 
-</div><!-- /app-shell -->
-
-<!-- ═══════════════ JAVASCRIPT ═══════════════ -->
-<script>
+</div><script>
+const INVOICE_TYPE = "{{ profile.get('invoice_type', 'goods') }}";
+const IS_SERVICE = (INVOICE_TYPE === 'service');
+const SELLER_STATE = "{{ profile.get('state', 'delhi') | lower }}";
 const INDIAN_STATES = [
   "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat",
   "Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra",
@@ -660,41 +480,185 @@ const INDIAN_STATES = [
 ];
 
 const DOC_TYPES = {
-  sale: [
-    {val:'invoice', text:'Tax Invoice (Decreases Stock)'},
-    {val:'cn',      text:'Credit Note / Return (Increases Stock)'}
-  ],
-  purchase: [
-    {val:'po',   text:'Purchase Order (No Stock Impact)'},
-    {val:'grn',  text:'GRN — Goods Receipt (Increases Stock)'},
-    {val:'bill', text:'Purchase Bill (Financial Only)'},
-    {val:'dn',   text:'Debit Note / Return (Decreases Stock)'}
-  ]
+  sale: [ {val:'invoice', text:'Tax Invoice'}, {val:'cn', text:'Credit Note / Return'} ],
+  purchase: [ {val:'po', text:'Purchase Order'}, {val:'grn', text:'GRN — Goods Receipt Note'}, {val:'bill', text:'Purchase Bill'}, {val:'dn', text:'Debit Note / Vendor Return'} ]
+};
+
+const BTN_LABELS = {
+  sale: { invoice: 'Create Sale Invoice', cn: 'Create Credit Note' },
+  purchase: { po: 'Create Purchase Order', grn: 'Create GRN', bill: 'Create Purchase Bill', dn: 'Create Debit Note' }
 };
 
 let particularsData = {};
 let invoiceListCache = [];
+let allClientsData = {};   
 let isEditMode = false;
-let clientTomSelect = null;
 let currentMode = 'sale';
 
+// --- TOM SELECT GLOBALS ---
+let tsViewAs, tsDocType, tsGenType, tsClientState, tsShipState, tsHistMode, clientTomSelect;
+
+// --- EMAIL AUTOCOMPLETE LOGIC ---
+const EMAIL_DOMAINS = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com'];
+
+function setupEmailAutocomplete(inputElement) {
+    if (!inputElement) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'relative w-full';
+    inputElement.parentNode.insertBefore(wrapper, inputElement);
+    wrapper.appendChild(inputElement);
+
+    const list = document.createElement('div');
+    list.className = 'autocomplete-list hidden';
+    wrapper.appendChild(list);
+
+    let currentFocus = -1;
+
+    inputElement.addEventListener('input', function() {
+        const val = this.value;
+        list.innerHTML = '';
+        list.classList.add('hidden');
+        currentFocus = -1;
+
+        if (!val.includes('@')) return;
+
+        const parts = val.split('@');
+        const prefix = parts[0];
+        const suffix = parts[1].toLowerCase();
+
+        // Show domains that match the suffix typed so far
+        const matches = EMAIL_DOMAINS.filter(d => d.startsWith(suffix));
+
+        if (matches.length > 0) {
+            list.classList.remove('hidden');
+            matches.forEach(domain => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.innerHTML = `<span style="opacity:0.6">${prefix}@</span><strong>${domain}</strong>`;
+                item.addEventListener('click', function() {
+                    inputElement.value = prefix + '@' + domain;
+                    list.classList.add('hidden');
+                });
+                list.appendChild(item);
+            });
+        }
+    });
+
+    inputElement.addEventListener('keydown', function(e) {
+        const items = list.querySelectorAll('.autocomplete-item');
+        if (e.keyCode === 40) { // Down
+            currentFocus++;
+            addActive(items);
+        } else if (e.keyCode === 38) { // Up
+            currentFocus--;
+            addActive(items);
+        } else if (e.keyCode === 13) { // Enter
+            if (currentFocus > -1 && items) {
+                e.preventDefault();
+                items[currentFocus].click();
+            }
+        }
+    });
+
+    function addActive(items) {
+        if (!items || items.length === 0) return false;
+        items.forEach(x => x.classList.remove('focused'));
+        if (currentFocus >= items.length) currentFocus = 0;
+        if (currentFocus < 0) currentFocus = (items.length - 1);
+        items[currentFocus].classList.add('focused');
+        items[currentFocus].scrollIntoView({ block: 'nearest' });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (e.target !== inputElement) list.classList.add('hidden');
+    });
+}
+
+
 document.addEventListener("DOMContentLoaded", async () => {
+  // Initialize Email Autocomplete
+  setupEmailAutocomplete(document.getElementById('client_email'));
+  setupEmailAutocomplete(document.getElementById('shipto_email'));
+
+  // Initialize static TomSelects
+  if (document.getElementById('view_as_select')) {
+      tsViewAs = new TomSelect("#view_as_select", {
+          controlInput: null,
+          onChange: function(val) { if(val) window.location.href='/set-view-mode/'+val; }
+      });
+  }
+
+  tsGenType = new TomSelect("#generation_type", {
+      controlInput: null,
+      onChange: function(val) {
+          document.getElementById('manual_details').className = val==='manual' ? 'manual-block visible' : 'manual-block';
+      }
+  });
+
+  tsHistMode = new TomSelect("#histModeFilter", {
+      controlInput: null,
+      onChange: filterHistory
+  });
+
   populateStates();
+  
   document.getElementsByName('appMode').forEach(r => { if(r.checked) currentMode = r.value; });
   handleModeChange();
+  
   await loadClients();
   await loadParticulars();
   loadOldInvoices();
   addRow();
+  applyServiceMode();  
 });
 
-function populateStates() {
-  const opts = '<option value="">Select State</option>' + INDIAN_STATES.map(s=>`<option value="${s}">${s}</option>`).join('');
-  document.getElementById('client_state').innerHTML = opts;
-  document.getElementById('shipto_state').innerHTML = opts;
+function applyServiceMode() {
+  const shipBlock = document.getElementById('shipToBlock');
+  const notice = document.getElementById('serviceModeNotice');
+  const rateHeader = document.getElementById('rateColHeader');
+  if (IS_SERVICE) {
+    if (shipBlock) shipBlock.style.display = 'none';
+    if (notice) notice.style.display = 'inline-flex';
+    if (rateHeader) rateHeader.textContent = 'Rate (Excl. Tax)';
+  } else {
+    if (shipBlock) shipBlock.style.display = '';
+    if (notice) notice.style.display = 'none';
+    if (rateHeader) rateHeader.textContent = 'Rate (Incl. Tax)';
+  }
 }
 
-// ── MODE ──
+function populateStates() {
+  const opts = [{value: "", text: "Select State"}].concat(INDIAN_STATES.map(s => ({value: s, text: s})));
+  
+  if(tsClientState) tsClientState.destroy();
+  tsClientState = new TomSelect("#client_state", {
+      options: opts,
+      create: false,
+      onChange: calculateTotals
+  });
+
+  if(tsShipState) tsShipState.destroy();
+  tsShipState = new TomSelect("#shipto_state", {
+      options: opts,
+      create: false,
+      onChange: calculateTotals
+  });
+}
+
+function updateBtnLabel() {
+  if (isEditMode) return;
+  const type = tsDocType ? tsDocType.getValue() : 'invoice';
+  const labels = BTN_LABELS[currentMode] || {};
+  const label = labels[type] || (currentMode === 'sale' ? 'Create Sale Invoice' : 'Create Purchase Document');
+  const btn = document.getElementById('generateBtn');
+  if (!btn) return;
+  const svgSale = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`;
+  const svgPur = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>`;
+  btn.className = 'generate-btn ' + (currentMode === 'sale' ? 'sale' : 'purchase');
+  btn.innerHTML = (currentMode === 'sale' ? svgSale : svgPur) + ' ' + label;
+}
+
 function handleModeChange() {
   document.getElementsByName('appMode').forEach(r => { if(r.checked) currentMode = r.value; });
   const isSale = currentMode === 'sale';
@@ -704,9 +668,18 @@ function handleModeChange() {
   if(pS) pS.className = 'mode-pill' + (isSale ? ' active-sale' : '');
   if(pP) pP.className = 'mode-pill' + (!isSale ? ' active-purchase' : '');
 
-  const sel = document.getElementById('doc_type_select');
-  sel.innerHTML = DOC_TYPES[currentMode].map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
-  handleDocTypeChange();
+  const opts = DOC_TYPES[currentMode];
+  if (!tsDocType) {
+      document.getElementById('doc_type_select').innerHTML = opts.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
+      tsDocType = new TomSelect("#doc_type_select", {
+          controlInput: null,
+          onChange: handleDocTypeChange
+      });
+  } else {
+      tsDocType.clearOptions();
+      opts.forEach(o => tsDocType.addOption({value: o.val, text: o.text}));
+      tsDocType.setValue(opts[0].val); 
+  }
 
   const table = document.getElementById('itemsTable');
   if(table) table.className = 'items-table' + (isSale ? '' : ' purchase-mode');
@@ -718,21 +691,12 @@ function handleModeChange() {
   document.getElementById('shipToHeader').textContent = isSale ? '🚚 Ship To' : '🏬 Ship To / Warehouse';
   document.getElementById('client_name').placeholder  = isSale ? 'Client full name' : 'Vendor company name';
 
-  if (!isEditMode) {
-    const btn = document.getElementById('generateBtn');
-    if(isSale) {
-      btn.className = 'generate-btn sale';
-      btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Generate Sales Document PDF`;
-    } else {
-      btn.className = 'generate-btn purchase';
-      btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> Process Purchase Document PDF`;
-    }
-  }
+  rebuildClientSelect();
+  applyServiceMode();
 }
 
-// ── REF FIELD ──
 function handleDocTypeChange() {
-  const type = document.getElementById('doc_type_select').value;
+  const type = tsDocType ? tsDocType.getValue() : 'invoice';
   const rw = document.getElementById('reference_wrapper');
   const rl = document.getElementById('reference_label');
   const ri = document.getElementById('reference_doc_no');
@@ -741,9 +705,9 @@ function handleDocTypeChange() {
   else if(type==='dn'){ rw.style.display='flex'; rl.textContent='Original Bill No'; ri.placeholder='e.g. SMT-PB/25-26/0001'; ri.required=true; }
   else if(type==='grn'){ rw.style.display='flex'; rl.textContent='Link PO Number'; ri.placeholder='e.g. SMT-PO/25-26/0001'; }
   else if(type==='bill'){ rw.style.display='flex'; rl.textContent='Link GRN Number'; ri.placeholder='Optional'; }
+  updateBtnLabel();
 }
 
-// ── PINCODE ──
 async function fetchPincodeData(prefix) {
   const pin = document.getElementById(prefix+'_pincode').value;
   if(pin.length === 6) {
@@ -753,52 +717,77 @@ async function fetchPincodeData(prefix) {
       if(data[0].Status === "Success") {
         const d = data[0].PostOffice[0];
         document.getElementById(prefix+'_district').value = d.District;
-        document.getElementById(prefix+'_state').value = d.State;
-        calculateTotals();
+        if (prefix === 'client' && tsClientState) tsClientState.setValue(d.State);
+        if (prefix === 'shipto' && tsShipState) tsShipState.setValue(d.State);
       }
     } catch(e) {}
   }
 }
 
-// ── SHIP TO ──
 function toggleShipTo() {
   const isSame = document.getElementById('same_as_bill').checked;
   const c = document.getElementById('ship_to_container');
   if(isSame) {
     c.style.opacity = '0.5'; c.style.pointerEvents = 'none';
-    ['name','mobile','email','address1','address2','pincode','district','state','gstin'].forEach(f => {
+    ['name','mobile','email','address1','address2','pincode','district','gstin'].forEach(f => {
       const b = document.getElementById('client_'+f), s = document.getElementById('shipto_'+f);
       if(b && s) s.value = b.value;
     });
+    if (tsClientState && tsShipState) tsShipState.setValue(tsClientState.getValue());
   } else {
     c.style.opacity = ''; c.style.pointerEvents = '';
   }
 }
 
-// ── DATA LOAD ──
 async function loadClients() {
   try {
     const res = await fetch('/clients');
-    const data = await res.json();
-    if(clientTomSelect) clientTomSelect.destroy();
-    clientTomSelect = new TomSelect("#clientSelect", {
-      options: Object.keys(data).map(n=>({value:n, text:n})),
-      create: true, sortField:{field:"text",direction:"asc"},
-      placeholder: "Search or type party name…",
-      onChange: function(value) {
-        if(!value) return;
-        document.getElementById('client_name').value = value;
-        if(data[value]) {
-          const c = data[value];
-          ['address1','address2','pincode','district','state','gstin','email','mobile'].forEach(f => document.getElementById('client_'+f).value = c[f]||'');
-          document.getElementById('shipto_gstin').value = c.gstin||'';
-        } else {
-          ['address1','address2','pincode','district','state','gstin','email','mobile'].forEach(f => document.getElementById('client_'+f).value='');
-        }
-        calculateTotals();
-      }
-    });
+    allClientsData = await res.json();
+    rebuildClientSelect();
   } catch(e) { console.error("Client load error:", e); }
+}
+
+function rebuildClientSelect() {
+  const data = allClientsData;
+  if(clientTomSelect) {
+    try { clientTomSelect.destroy(); } catch(e) {}
+    clientTomSelect = null;
+  }
+
+  let partyOptions;
+  if (currentMode === 'purchase' && invoiceListCache.length > 0) {
+    const vendorSet = new Set();
+    invoiceListCache.filter(i => i.doc_category === 'purchase').forEach(i => { if(i.client_name) vendorSet.add(i.client_name); });
+    Object.keys(data).forEach(k => vendorSet.add(k));
+    partyOptions = [...vendorSet].map(n => ({value:n, text:n}));
+  } else if (currentMode === 'sale' && invoiceListCache.length > 0) {
+    const clientSet = new Set();
+    invoiceListCache.filter(i => i.doc_category === 'sale' || !i.doc_category).forEach(i => { if(i.client_name) clientSet.add(i.client_name); });
+    Object.keys(data).forEach(k => clientSet.add(k));
+    partyOptions = [...clientSet].map(n => ({value:n, text:n}));
+  } else {
+    partyOptions = Object.keys(data).map(n => ({value:n, text:n}));
+  }
+
+  clientTomSelect = new TomSelect("#clientSelect", {
+    options: partyOptions,
+    create: true, sortField:{field:"text",direction:"asc"},
+    placeholder: "Search or type party name…",
+    onChange: function(value) {
+      if(!value) return;
+      document.getElementById('client_name').value = value;
+      if(data[value]) {
+        const c = data[value];
+        ['address1','address2','pincode','district','gstin','email','mobile'].forEach(f => document.getElementById('client_'+f).value = c[f]||'');
+        if (tsClientState) tsClientState.setValue(c.state || '');
+        document.getElementById('shipto_gstin').value = c.gstin||'';
+      } else {
+        ['address1','address2','pincode','district','gstin','email','mobile'].forEach(f => document.getElementById('client_'+f).value='');
+        if (tsClientState) tsClientState.setValue('');
+      }
+      calculateTotals();
+    }
+  });
 }
 
 async function loadParticulars() {
@@ -811,10 +800,10 @@ async function loadOldInvoices() {
     invoiceListCache = await res.json();
     invoiceListCache.sort((a,b) => b.bill_no.localeCompare(a.bill_no, undefined, {numeric:true}));
     renderHistoryTable(invoiceListCache);
+    rebuildClientSelect();
   } catch(e) { console.error(e); }
 }
 
-// ── HISTORY RENDER ──
 function getBadge(cat, type) {
   if(cat==='purchase') {
     if(type==='bill') return ['BILL','badge-bill'];
@@ -829,38 +818,37 @@ function getBadge(cat, type) {
 }
 
 function renderHistoryTable(data) {
+  const modeFilter = tsHistMode ? tsHistMode.getValue() : '';
+  let filtered = data;
+  if (modeFilter) filtered = data.filter(i => (i.doc_category || 'sale') === modeFilter);
+
   const tbody = document.getElementById('historyTableBody');
   const count = document.getElementById('historyCount');
   tbody.innerHTML = '';
-  count.textContent = `(${data.length})`;
-  if(!data.length) {
+  count.textContent = `(${filtered.length})`;
+  if(!filtered.length) {
     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--ink-3);">No documents found.</td></tr>';
     return;
   }
   const now = new Date();
-  data.forEach(inv => {
+  filtered.forEach(inv => {
     let showEdit = false;
     if(inv.timestamp) showEdit = ((now - new Date(inv.timestamp))/3600000) <= 24;
-    else {
-      const today = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}).replace(/ /g,'-');
-      showEdit = inv.invoice_date === today;
-    }
     const cat = inv.doc_category||'sale', type = inv.doc_type||'invoice';
     const [label, cls] = getBadge(cat, type);
     const status = inv.status||'';
+    const catBadge = cat === 'purchase' ? '<span style="font-size:9px;font-weight:800;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:4px;padding:1px 5px;margin-left:4px;">PUR</span>' : '';
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="text-align:center;"><input type="checkbox" class="hist-checkbox" value="${inv.bill_no}"></td>
       <td>
-        <div style="font-weight:700;color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:12.5px;">${inv.bill_no}</div>
+        <div style="font-weight:700;color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:12.5px;">${inv.bill_no}${catBadge}</div>
         <span class="doc-badge ${cls}">${label}</span>
       </td>
       <td style="font-size:12px;color:var(--ink-3);">${inv.invoice_date||'—'}</td>
       <td style="font-weight:600;">${inv.client_name||'—'}</td>
       <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-weight:600;">₹${inv.grand_total ? inv.grand_total.toFixed(2) : '0.00'}</td>
-      <td style="text-align:center;">
-        ${status ? `<span class="status-badge status-${status}">${status}</span>` : '<span style="color:var(--ink-3);font-size:11px;">—</span>'}
-      </td>
+      <td style="text-align:center;">${status ? `<span class="status-badge status-${status}">${status}</span>` : '<span style="color:var(--ink-3);font-size:11px;">—</span>'}</td>
       <td>
         <div style="display:flex;align-items:center;justify-content:center;gap:3px;">
           ${showEdit && type!=='dn' && type!=='cn' ? `<button onclick="editInvoice('${inv.bill_no}')" class="act-btn" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6366f1" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>` : ''}
@@ -874,22 +862,40 @@ function renderHistoryTable(data) {
 
 function filterHistory() {
   const term = document.getElementById('historySearch').value.toLowerCase();
+  const modeFilter = tsHistMode ? tsHistMode.getValue() : '';
   renderHistoryTable(invoiceListCache.filter(i =>
-    i.bill_no.toLowerCase().includes(term) || (i.client_name && i.client_name.toLowerCase().includes(term))
+    (i.bill_no.toLowerCase().includes(term) || (i.client_name && i.client_name.toLowerCase().includes(term)))
   ));
 }
 
 function selectAllHistory(s) { document.querySelectorAll('.hist-checkbox').forEach(cb => cb.checked = s); }
 
-// ── DATE CONVERT ──
-function convertDateForInput(d) {
-  if(!d) return "";
-  const m = {Jan:"01",Feb:"02",Mar:"03",Apr:"04",May:"05",Jun:"06",Jul:"07",Aug:"08",Sep:"09",Oct:"10",Nov:"11",Dec:"12"};
-  const p = d.split('-'); if(p.length<3) return "";
-  return `${p[2]}-${m[p[1]]}-${p[0]}`;
+// Convert YYYY-MM-DD from calendar to DD-MM-YYYY for backend
+function formatToDDMMYYYY(ymdStr) {
+    if (!ymdStr) return '';
+    const parts = ymdStr.split('-');
+    if (parts.length === 3 && parts[0].length === 4) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return ymdStr;
 }
 
-// ── EDIT ──
+// Convert DD-MM-YYYY or DD-Mon-YYYY from backend to YYYY-MM-DD for native input
+function convertDateForInput(d) {
+  if(!d) return "";
+  const parts = d.split('-'); 
+  if(parts.length === 3) {
+      if(parts[0].length === 2) {
+          if(isNaN(parseInt(parts[1]))) {
+              const m = {Jan:"01",Feb:"02",Mar:"03",Apr:"04",May:"05",Jun:"06",Jul:"07",Aug:"08",Sep:"09",Oct:"10",Nov:"11",Dec:"12"};
+              return `${parts[2]}-${m[parts[1]]}-${parts[0]}`;
+          }
+          return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+  }
+  return d;
+}
+
 function editInvoice(billNo) {
   const inv = invoiceListCache.find(i => i.bill_no === billNo);
   if(!inv) return alert("Document not found.");
@@ -906,20 +912,31 @@ function editInvoice(billNo) {
   let hasPerm = false; radios.forEach(r => { if(r.value===cat) hasPerm=true; });
   if(!hasPerm) return alert("No permission for "+cat+" documents.");
   radios.forEach(r => r.checked = (r.value===cat));
+  
   handleModeChange();
-  setTimeout(() => { document.getElementById('doc_type_select').value=type; handleDocTypeChange(); }, 50);
+  
+  setTimeout(() => { 
+      if(tsDocType) tsDocType.setValue(type); 
+      if(tsGenType) tsGenType.setValue('manual');
+  }, 50);
+
   if(clientTomSelect) { clientTomSelect.addOption({value:inv.client_name,text:inv.client_name}); clientTomSelect.setValue(inv.client_name); }
-  ['address1','address2','pincode','district','state','gstin','email','mobile'].forEach(f => { if(inv['client_'+f]) document.getElementById('client_'+f).value=inv['client_'+f]; });
-  ['name','address1','address2','pincode','district','state','gstin','email','mobile'].forEach(f => { if(inv['shipto_'+f]) document.getElementById('shipto_'+f).value=inv['shipto_'+f]; });
+  
+  ['address1','address2','pincode','district','gstin','email','mobile'].forEach(f => { if(inv['client_'+f]) document.getElementById('client_'+f).value=inv['client_'+f]; });
+  if(tsClientState) tsClientState.setValue(inv.client_state || '');
+
+  ['name','address1','address2','pincode','district','gstin','email','mobile'].forEach(f => { if(inv['shipto_'+f]) document.getElementById('shipto_'+f).value=inv['shipto_'+f]; });
+  if(tsShipState) tsShipState.setValue(inv.shipto_state || '');
+
   document.getElementById('po_number').value = inv.po_number||'';
   if(inv.original_invoice_no) document.getElementById('reference_doc_no').value = inv.original_invoice_no;
-  document.getElementById('generation_type').value = 'manual';
-  document.getElementById('manual_details').className = 'manual-block visible';
+  
   document.getElementById('manual_bill_no').value = inv.bill_no;
   document.getElementById('manual_bill_no').readOnly = true;
   document.getElementById('manual_bill_no').style.background = 'var(--surface-3)';
   document.getElementById('manual_invoice_date').value = convertDateForInput(inv.invoice_date);
   document.getElementById('is_non_gst').checked = inv.is_non_gst||false;
+  
   document.getElementById('itemsBody').innerHTML = '';
   (inv.particulars||[]).forEach((item, i) => {
     const row = addRow();
@@ -930,14 +947,16 @@ function editInvoice(billNo) {
     row.querySelector('.rate').value = inv.rates?Math.abs(inv.rates[i]):0;
     const discEl = row.querySelector('.discount');
     if(discEl) discEl.value = inv.discounts?(inv.discounts[i]||0):0;
-    row.querySelector('.taxrate').value = inv.taxrates?inv.taxrates[i]:0;
+    
+    const trSel = row.querySelector('.taxrate');
+    if(trSel && trSel.tomselect) trSel.tomselect.setValue(inv.taxrates ? inv.taxrates[i] : 0);
+
     row.querySelector('.qty').dispatchEvent(new Event('input'));
   });
   calculateTotals();
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
-// ── ITEM ROW ──
 async function handleParticularInput(val, row) {
   const sl = row.querySelector('.stock-label'); sl.innerHTML = '';
   if(!val) return;
@@ -946,7 +965,10 @@ async function handleParticularInput(val, row) {
   if(fd) {
     if(fd.rate !== undefined) row.querySelector('.rate').value = fd.rate;
     if(isNonGST) row.querySelector('.hsn').value=''; else if(fd.hsn) row.querySelector('.hsn').value=fd.hsn;
-    if(!isNonGST && fd.taxrate !== undefined) row.querySelector('.taxrate').value=fd.taxrate;
+    if(!isNonGST && fd.taxrate !== undefined) {
+        const trSel = row.querySelector('.taxrate');
+        if(trSel.tomselect) trSel.tomselect.setValue(fd.taxrate);
+    }
     calculateRowAmount.call(row.querySelector('.qty'));
   }
   if(currentMode==='sale') {
@@ -954,9 +976,13 @@ async function handleParticularInput(val, row) {
     try {
       const r = await fetch(`/api/check-stock/${encodeURIComponent(val)}`);
       const sd = await r.json();
-      sl.innerHTML = sd.exists
-        ? (sd.stock>0 ? `<span class="stock-chip in">In Stock: ${sd.stock}</span>` : `<span class="stock-chip out">Out of Stock</span>`)
-        : `<span class="stock-chip none">No Record</span>`;
+      if (sd.exists) {
+        sl.innerHTML = sd.stock >= 0 
+          ? `<span class="stock-chip in">In Stock: ${sd.stock}</span>` 
+          : `<span class="stock-chip out">Stock: ${sd.stock}</span>`;
+      } else {
+        sl.innerHTML = `<span class="stock-chip none">No Record (Auto-create)</span>`;
+      }
     } catch(e) { sl.innerHTML=''; }
   }
 }
@@ -969,19 +995,26 @@ function addRow() {
       <select class="particulars-select" placeholder="Search or type item…"></select>
       <div class="stock-label"></div>
     </td>
-    <td style="padding:5px 6px;"><input type="text" value="998222" class="hsn" style="text-align:center;width:82px;"></td>
+    <td style="padding:5px 6px;"><input type="text" value="" class="hsn" style="text-align:center;width:82px;"></td>
     <td style="padding:5px 6px;"><input type="number" class="qty" value="1" min="0.01" step="0.01" style="text-align:center;width:68px;font-weight:700;"></td>
     <td style="padding:5px 6px;"><input type="number" class="rate" value="0" min="0" style="text-align:right;width:108px;"></td>
     <td style="padding:5px 6px;"><input type="number" class="discount" value="0" min="0" max="100" step="0.5" style="text-align:center;width:64px;"></td>
-    <td style="padding:5px 6px;"><select class="taxrate" style="width:88px;"><option value="18">18%</option><option value="12">12%</option><option value="5">5%</option><option value="28">28%</option><option value="0">0%</option></select></td>
-    <td style="padding:5px 6px;" class="amount-cell"><input type="number" class="amount" value="0" readonly style="text-align:right;width:100px;border:none;background:transparent;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;"></td>
+    <td style="padding:5px 6px;"><select class="taxrate" style="width:100px;"><option value="18">18%</option><option value="12">12%</option><option value="5">5%</option><option value="28">28%</option><option value="0">0%</option></select></td>
+    <td style="padding:5px 6px;" class="amount-cell"><input type="number" class="amount" value="0" readonly style="text-align:right;border:none;background:transparent;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;"></td>
     <td style="padding:5px 6px;text-align:center;"><button type="button" onclick="removeRow(this)" class="row-remove">×</button></td>`;
   tbody.appendChild(row);
+  
   new TomSelect(row.querySelector('.particulars-select'), {
     options: Object.keys(particularsData).map(k=>({value:k,text:k})),
     create: true, sortField:{field:"text",direction:"asc"},
     onChange: val => handleParticularInput(val, row)
   });
+
+  new TomSelect(row.querySelector('.taxrate'), {
+      controlInput: null,
+      onChange: calculateTotals
+  });
+
   attachRowListeners(row);
   return row;
 }
@@ -990,14 +1023,16 @@ function removeRow(btn) {
   const row = btn.closest('tr');
   const s = row.querySelector('.particulars-select');
   if(s && s.tomselect) s.tomselect.destroy();
-  row.remove(); calculateTotals();
+  const tr = row.querySelector('.taxrate');
+  if(tr && tr.tomselect) tr.tomselect.destroy();
+  row.remove(); 
+  calculateTotals();
 }
 
 function attachRowListeners(row) {
   row.querySelector('.qty').addEventListener('input', calculateRowAmount);
   row.querySelector('.rate').addEventListener('input', calculateRowAmount);
   row.querySelector('.discount').addEventListener('input', calculateRowAmount);
-  row.querySelector('.taxrate').addEventListener('change', calculateTotals);
 }
 
 function calculateRowAmount() {
@@ -1006,7 +1041,13 @@ function calculateRowAmount() {
   const rate = parseFloat(row.querySelector('.rate').value||0);
   const disc = parseFloat(row.querySelector('.discount').value||0);
   const base = qty * rate;
-  row.querySelector('.amount').value = (base - base*(disc/100)).toFixed(2);
+  const afterDisc = base - base*(disc/100);
+
+  if (IS_SERVICE) {
+    row.querySelector('.amount').value = afterDisc.toFixed(2);
+  } else {
+    row.querySelector('.amount').value = afterDisc.toFixed(2);
+  }
   calculateTotals();
 }
 
@@ -1015,34 +1056,49 @@ function calculateTotals() {
   const rows = document.querySelectorAll('#itemsBody tr');
   rows.forEach(row => {
     const ts = row.querySelector('.taxrate'), hn = row.querySelector('.hsn');
-    if(isNonGST){ ts.value="0"; ts.disabled=true; hn.value=""; hn.disabled=true; ts.style.background='var(--surface-3)'; hn.style.background='var(--surface-3)'; }
-    else{ ts.disabled=false; hn.disabled=false; ts.style.background=''; hn.style.background=''; }
+    if(isNonGST){ 
+        if(ts.tomselect) { ts.tomselect.setValue("0", true); ts.tomselect.disable(); }
+        hn.disabled=true; hn.style.background='var(--surface-3)'; 
+    }
+    else{ 
+        if(ts.tomselect) { ts.tomselect.enable(); }
+        hn.disabled=false; hn.style.background=''; 
+    }
   });
-  let sub=0, igst=0, cgst=0, sgst=0, taxable=0;
-  const isInter = (() => { const s=(document.getElementById('client_state').value||'').toLowerCase(); return s && s!=='delhi'; })();
+  let sub=0, igst=0, cgst=0, sgst=0, grandTotal=0;
+  const clientState = tsClientState ? tsClientState.getValue() : '';
+  const isInter = clientState && clientState.toLowerCase() !== SELLER_STATE;
+  
   rows.forEach(row => {
     const amt = parseFloat(row.querySelector('.amount').value||0);
-    sub += amt;
-    const tr = isNonGST?0:parseFloat(row.querySelector('.taxrate').value||0);
-    const tx = amt/(1+tr/100), ta = amt-tx;
-    taxable += tx;
-    if(!isNonGST){ if(isInter) igst+=ta; else{ cgst+=ta/2; sgst+=ta/2; } }
+    const trSelect = row.querySelector('.taxrate');
+    const tr_rate = isNonGST ? 0 : parseFloat(trSelect.tomselect ? trSelect.tomselect.getValue() : trSelect.value) || 0;
+
+    if (IS_SERVICE) {
+      sub += amt;
+      const ta = isNonGST ? 0 : amt * tr_rate / 100;
+      grandTotal += amt + ta;
+      if(!isNonGST){ if(isInter) igst+=ta; else{ cgst+=ta/2; sgst+=ta/2; } }
+    } else {
+      const tx = amt/(1+tr_rate/100), ta = amt-tx;
+      sub += tx;
+      grandTotal += amt;
+      if(!isNonGST){ if(isInter) igst+=ta; else{ cgst+=ta/2; sgst+=ta/2; } }
+    }
   });
-  document.getElementById('subTotal').textContent  = taxable.toFixed(2);
+  document.getElementById('subTotal').textContent  = sub.toFixed(2);
   document.getElementById('igst').textContent       = igst.toFixed(2);
   document.getElementById('cgst').textContent       = cgst.toFixed(2);
   document.getElementById('sgst').textContent       = sgst.toFixed(2);
-  document.getElementById('grandTotal').textContent = sub.toFixed(2);
+  document.getElementById('grandTotal').textContent = grandTotal.toFixed(2);
 }
 
 document.getElementById('is_non_gst').addEventListener('change', calculateTotals);
-document.getElementById('client_state').addEventListener('change', calculateTotals);
 
-// ── GENERATE ──
 document.getElementById('generateBtn').addEventListener('click', async () => {
   const clientName = document.getElementById('client_name').value.trim();
   if(!clientName) return alert('Please enter a Party Name.');
-  const type   = document.getElementById('doc_type_select').value;
+  const type   = tsDocType ? tsDocType.getValue() : 'invoice';
   const refDoc = document.getElementById('reference_doc_no').value.trim();
   if((type==='cn'||type==='dn') && !refDoc) return alert('You must provide the Original Reference Document Number for Credit/Debit Notes.');
   const items = document.querySelectorAll('#itemsBody tr');
@@ -1051,38 +1107,42 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
   if(!hasItem) return alert('Please add at least one item.');
   let finalRef=refDoc, finalPO=document.getElementById('po_number').value.trim();
   if(type==='grn') finalPO=refDoc;
+  
+  const rawDate = document.getElementById('manual_invoice_date').value;
+  
   const data = {
     is_edit: isEditMode, doc_category: currentMode, doc_type: type,
+    invoice_type: INVOICE_TYPE, 
     is_non_gst: document.getElementById('is_non_gst').checked,
     client_name: clientName,
     client_address1: document.getElementById('client_address1').value.trim(),
     client_address2: document.getElementById('client_address2').value.trim(),
     client_pincode:  document.getElementById('client_pincode').value.trim(),
     client_district: document.getElementById('client_district').value.trim(),
-    client_state:    document.getElementById('client_state').value.trim(),
+    client_state:    tsClientState ? tsClientState.getValue() : '',
     client_gstin:    document.getElementById('client_gstin').value.trim(),
     client_email:    document.getElementById('client_email').value.trim(),
     client_mobile:   document.getElementById('client_mobile').value.trim(),
-    shipto_name:     document.getElementById('shipto_name').value.trim(),
-    shipto_address1: document.getElementById('shipto_address1').value.trim(),
-    shipto_address2: document.getElementById('shipto_address2').value.trim(),
-    shipto_pincode:  document.getElementById('shipto_pincode').value.trim(),
-    shipto_district: document.getElementById('shipto_district').value.trim(),
-    shipto_state:    document.getElementById('shipto_state').value.trim(),
-    shipto_gstin:    document.getElementById('shipto_gstin').value.trim(),
-    shipto_email:    document.getElementById('shipto_email').value.trim(),
-    shipto_mobile:   document.getElementById('shipto_mobile').value.trim(),
+    shipto_name:     IS_SERVICE ? '' : document.getElementById('shipto_name').value.trim(),
+    shipto_address1: IS_SERVICE ? '' : document.getElementById('shipto_address1').value.trim(),
+    shipto_address2: IS_SERVICE ? '' : document.getElementById('shipto_address2').value.trim(),
+    shipto_pincode:  IS_SERVICE ? '' : document.getElementById('shipto_pincode').value.trim(),
+    shipto_district: IS_SERVICE ? '' : document.getElementById('shipto_district').value.trim(),
+    shipto_state:    IS_SERVICE ? '' : (tsShipState ? tsShipState.getValue() : ''),
+    shipto_gstin:    IS_SERVICE ? '' : document.getElementById('shipto_gstin').value.trim(),
+    shipto_email:    IS_SERVICE ? '' : document.getElementById('shipto_email').value.trim(),
+    shipto_mobile:   IS_SERVICE ? '' : document.getElementById('shipto_mobile').value.trim(),
     po_number: finalPO, original_invoice_no: finalRef,
     particulars: Array.from(items).map(tr => { const s=tr.querySelector('.particulars-select'); return s.tomselect?s.tomselect.getValue():''; }),
     qtys:      Array.from(items).map(tr => parseFloat(tr.querySelector('.qty').value||0)),
     rates:     Array.from(items).map(tr => parseFloat(tr.querySelector('.rate').value||0)),
     discounts: Array.from(items).map(tr => parseFloat(tr.querySelector('.discount').value||0)),
-    taxrates:  Array.from(items).map(tr => parseFloat(tr.querySelector('.taxrate').value||0)),
+    taxrates:  Array.from(items).map(tr => { const t = tr.querySelector('.taxrate'); return parseFloat(t.tomselect ? t.tomselect.getValue() : t.value) || 0; }),
     hsns:      Array.from(items).map(tr => tr.querySelector('.hsn').value.trim()),
     amounts:   Array.from(items).map(tr => parseFloat(tr.querySelector('.amount').value||0)),
-    auto_generate:       document.getElementById('generation_type').value==='auto',
+    auto_generate:       tsGenType ? (tsGenType.getValue() === 'auto') : true,
     manual_bill_no:      document.getElementById('manual_bill_no').value.trim(),
-    manual_invoice_date: document.getElementById('manual_invoice_date').value,
+    manual_invoice_date: formatToDDMMYYYY(rawDate),
   };
   const btn = document.getElementById('generateBtn');
   const savedHTML = btn.innerHTML;
@@ -1106,11 +1166,6 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
   finally { btn.disabled = false; btn.innerHTML = savedHTML; }
 });
 
-document.getElementById('generation_type').addEventListener('change', function() {
-  document.getElementById('manual_details').className = this.value==='manual' ? 'manual-block visible' : 'manual-block';
-});
-
-// ── ACTIONS ──
 function downloadSingle(bno) { window.location.href=`/download-invoice/${encodeURIComponent(bno)}`; }
 async function emailSingle(bno) {
   if(!confirm(`Send email to client for Document ${bno}?`)) return;
@@ -1127,7 +1182,6 @@ async function downloadZip() {
   } catch(e) { alert("Network Error"); }
 }
 
-// ── RESET ──
 function resetForm() {
   isEditMode = false;
   document.getElementById('editBanner').style.display = 'none';
@@ -1137,11 +1191,16 @@ function resetForm() {
   handleModeChange();
   document.querySelectorAll('input').forEach(i => { if(i.type!=='radio'&&i.type!=='checkbox') i.value=''; });
   document.getElementById('is_non_gst').checked = false;
+  
   if(clientTomSelect) clientTomSelect.clear();
-  document.querySelectorAll('select').forEach(s => { if(!s.classList.contains('particulars-select')&&s.id!=='doc_type_select'&&s.id!=='generation_type') s.selectedIndex=0; });
+  if(tsClientState) tsClientState.clear();
+  if(tsShipState) tsShipState.clear();
+  if(tsGenType) tsGenType.setValue('auto');
+
   document.getElementById('itemsBody').innerHTML = '';
   addRow();
   calculateTotals();
+  updateBtnLabel();
 }
 </script>
 </body>

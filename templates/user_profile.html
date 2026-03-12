@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 font-sans p-6">
-    <div class="max-w-5xl mx-auto bg-white shadow-xl rounded-2xl p-8">
+    <div class="max-w-6xl mx-auto bg-white shadow-xl rounded-2xl p-8">
         
         <div class="flex flex-col md:flex-row justify-between items-center mb-8 border-b pb-6 gap-4">
             <div class="flex-1">
@@ -104,25 +104,36 @@
                 </span>
                 Create New User
             </h3>
-            <form method="POST" class="flex flex-col md:flex-row gap-4 items-end bg-gray-50 p-4 rounded-xl border border-gray-100">
-                <div class="flex-1 w-full">
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Username</label>
-                    <input type="text" name="new_username" class="border border-gray-300 rounded-lg p-3 text-sm w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition" placeholder="e.g. user_delhi" required>
+            <form method="POST" class="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col gap-4">
+                <div class="flex flex-col md:flex-row gap-4 items-end">
+                    <div class="flex-1 w-full">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Username</label>
+                        <input type="text" name="new_username" class="border border-gray-300 rounded-lg p-3 text-sm w-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="e.g. user_delhi" required>
+                    </div>
+                    <div class="flex-1 w-full">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Password</label>
+                        <input type="text" name="new_password" class="border border-gray-300 rounded-lg p-3 text-sm w-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="Secret Password" required>
+                    </div>
+                    <button type="submit" class="w-full md:w-auto bg-blue-600 text-white px-8 py-3 rounded-lg text-sm font-bold hover:bg-blue-700 transition shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                        + Create User
+                    </button>
                 </div>
-                <div class="flex-1 w-full">
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Password</label>
-                    <input type="text" name="new_password" class="border border-gray-300 rounded-lg p-3 text-sm w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition" placeholder="Secret Password" required>
+                <div class="flex items-center gap-6 mt-1 ml-1">
+                    <span class="text-sm font-bold text-gray-700">Initial Permissions:</span>
+                    <label class="flex items-center text-sm font-bold text-gray-600 gap-2 cursor-pointer select-none">
+                        <input type="checkbox" name="new_perm_sale" value="true" checked class="w-4 h-4 text-blue-600 rounded"> Sale Access
+                    </label>
+                    <label class="flex items-center text-sm font-bold text-gray-600 gap-2 cursor-pointer select-none">
+                        <input type="checkbox" name="new_perm_purchase" value="true" checked class="w-4 h-4 text-blue-600 rounded"> Purchase Access
+                    </label>
                 </div>
-                <button type="submit" class="w-full md:w-auto bg-blue-600 text-white px-6 py-3 rounded-lg text-sm font-bold hover:bg-blue-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                    + Create User
-                </button>
             </form>
         </div>
         
-        <div class="mb-8">
-            <label class="block text-sm font-bold text-gray-700 mb-2 ml-1">Select User Profile to Manage:</label>
+        <div class="mb-8 bg-orange-50 p-4 rounded-xl border border-orange-100">
+            <label class="block text-sm font-bold text-orange-800 mb-2 ml-1">Select Existing User to Manage:</label>
             <div class="relative">
-                <select onchange="window.location.href='?edit_user='+this.value" class="appearance-none border-2 border-orange-100 p-4 rounded-xl w-full md:w-1/2 bg-white shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none text-gray-700 font-bold text-lg cursor-pointer transition">
+                <select onchange="window.location.href='?edit_user='+this.value" class="appearance-none border border-orange-200 p-3 rounded-lg w-full md:w-1/2 bg-white shadow-sm focus:ring-2 focus:ring-orange-500 focus:outline-none text-gray-800 font-bold cursor-pointer transition">
                     {% for u in all_users %}
                         <option value="{{ u }}" {% if target_user == u %}selected{% endif %}>
                             {{ u }} {% if u == current_user.id %} (Master Admin) {% endif %}
@@ -130,27 +141,27 @@
                     {% endfor %}
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-orange-500 md:right-1/2">
-                    <svg class="fill-current h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    <svg class="fill-current h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                 </div>
             </div>
         </div>
 
         {% if target_user != current_user.id %}
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             
             <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
                 <div>
                     <h3 class="font-bold text-gray-800 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Access Control
+                        <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        Login Access
                     </h3>
-                    <p class="text-sm text-gray-500 mt-1 mb-3">
+                    <p class="text-sm text-gray-500 mt-2 mb-4">
                         Status: 
                         {% if target_is_active %}
-                            <span class="text-green-600 font-bold">Active</span>
+                            <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded font-bold text-xs ml-1">Active</span>
                         {% else %}
-                            <span class="text-red-600 font-bold">Inactive</span>
+                            <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded font-bold text-xs ml-1">Inactive</span>
                         {% endif %}
                     </p>
                 </div>
@@ -165,17 +176,56 @@
                 </form>
             </div>
 
-            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-                <h3 class="font-bold text-gray-800 flex items-center mb-3">
-                    <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
-                    Reset Password
-                </h3>
-                <form method="POST" class="flex gap-2">
-                    <input type="hidden" name="target_user_id" value="{{ target_user }}">
-                    <input type="text" name="reset_password" placeholder="New Password" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none" required>
-                    <button type="submit" name="action_reset_pass" value="true" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-black transition">Update</button>
+            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-gray-800 flex items-center mb-3">
+                        <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        Modules
+                    </h3>
+                    <form method="POST" class="space-y-3">
+                        <input type="hidden" name="target_user_id" value="{{ target_user }}">
+                        <input type="hidden" name="update_perms" value="true">
+                        <label class="flex items-center text-sm font-bold text-gray-600 gap-2 cursor-pointer bg-gray-50 p-2 rounded border hover:bg-orange-50 transition">
+                            <input type="checkbox" name="perm_sale" value="true" class="w-4 h-4 text-orange-500 rounded" {% if 'sale' in target_perms %}checked{% endif %}> Sale
+                        </label>
+                        <label class="flex items-center text-sm font-bold text-gray-600 gap-2 cursor-pointer bg-gray-50 p-2 rounded border hover:bg-blue-50 transition">
+                            <input type="checkbox" name="perm_purchase" value="true" class="w-4 h-4 text-blue-500 rounded" {% if 'purchase' in target_perms %}checked{% endif %}> Purchase
+                        </label>
+                </div>
+                <button type="submit" class="w-full mt-4 bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-black transition">Save</button>
                 </form>
             </div>
+
+            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-gray-800 flex items-center mb-3">
+                        <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                        Password
+                    </h3>
+                    <p class="text-xs text-gray-500 mb-4">Set a new login password.</p>
+                </div>
+                <form method="POST" action="/reset-password" class="flex flex-col gap-2">
+                    <input type="hidden" name="target_user_id" value="{{ target_user }}">
+                    <input type="text" name="reset_password" placeholder="New password" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none" required>
+                    <button type="submit" name="action_reset_pass" value="true" class="w-full bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-100 transition">Update</button>
+                </form>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-gray-800 flex items-center mb-3">
+                        <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        Rename ID
+                    </h3>
+                    <p class="text-xs text-gray-500 mb-4">Change this user's login username.</p>
+                </div>
+                <form method="POST" class="flex flex-col gap-2">
+                    <input type="hidden" name="target_user_id" value="{{ target_user }}">
+                    <input type="text" name="new_sub_username" placeholder="New username" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none" required>
+                    <button type="submit" name="action_rename_user" value="true" class="w-full bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-100 transition" onclick="return confirm('Rename user? This will safely migrate all their data and invoices over to the new name.')">Rename User</button>
+                </form>
+            </div>
+            
         </div>
         {% endif %}
         {% endif %}
@@ -193,15 +243,26 @@
 
             <div class="col-span-1 md:col-span-2 bg-gray-50 p-6 rounded-xl border border-gray-200">
                 <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-200 pb-2">Invoice Configuration</h3>
-                <div class="flex flex-col md:flex-row items-start md:items-center gap-6">
-                    <div class="flex-1 w-full">
+                <div class="flex flex-col md:flex-row items-start md:items-end gap-6 flex-wrap">
+                    <div class="flex-1 w-full min-w-[180px]">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Invoice Number Prefix</label>
                         <input type="text" name="invoice_prefix" value="{{ profile.get('invoice_prefix','TE') }}" class="w-full border border-gray-300 rounded-lg p-3 uppercase font-bold text-gray-800 focus:ring-2 focus:ring-orange-500 focus:outline-none" {% if not current_user.is_master %}disabled{% endif %}>
                     </div>
-                    <div class="flex-1 w-full">
+                    <div class="flex-1 w-full min-w-[180px]">
                         <label class="block text-sm font-medium text-gray-400 mb-1">Preview</label>
                         <input type="text" disabled value="{{ profile.get('invoice_prefix','TE') }}/2025-26/0001" class="w-full border border-gray-200 rounded-lg p-3 bg-white text-gray-500 font-mono">
                     </div>
+
+                    {% if current_user.is_master %}
+                    <div class="flex-1 w-full min-w-[180px]">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Invoice Type</label>
+                        <select name="invoice_type" class="w-full border border-gray-300 rounded-lg p-3 font-bold text-gray-800 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                            <option value="goods" {% if profile.get('invoice_type','goods') == 'goods' %}selected{% endif %}>🏭 Goods (Show Ship To, Rate Incl. Tax)</option>
+                            <option value="service" {% if profile.get('invoice_type') == 'service' %}selected{% endif %}>💼 Service (No Ship To, Rate Excl. Tax)</option>
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">Applies globally to all invoices generated.</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -211,8 +272,17 @@
                 <div><label class="text-xs font-bold text-gray-500 uppercase">Address Line 1</label><input type="text" name="address_1" value="{{ profile.get('address_1','') }}" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}></div>
                 <div><label class="text-xs font-bold text-gray-500 uppercase">Address Line 2</label><input type="text" name="address_2" value="{{ profile.get('address_2','') }}" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}></div>
                 <div><label class="text-xs font-bold text-gray-500 uppercase">Phone</label><input type="text" name="phone" value="{{ profile.get('phone','') }}" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}></div>
-                <div><label class="text-xs font-bold text-gray-500 uppercase">Email</label><input type="email" name="email" value="{{ profile.get('email','') }}" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}></div>
+                <div><label class="text-xs font-bold text-gray-500 uppercase">Email (Used for OTP &amp; Reports)</label><input type="email" name="email" value="{{ profile.get('email','') }}" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}></div>
                 <div><label class="text-xs font-bold text-gray-500 uppercase">GSTIN</label><input type="text" name="gstin" value="{{ profile.get('gstin','') }}" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 uppercase focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}></div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase">Business State</label>
+                    <select name="state" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}>
+                        <option value="">Select State</option>
+                        {% for state in ['Delhi','Haryana','Uttar Pradesh','Maharashtra','Karnataka','Tamil Nadu','Gujarat','Rajasthan','West Bengal','Punjab','Andhra Pradesh','Telangana','Madhya Pradesh','Bihar','Odisha','Kerala','Jharkhand','Assam','Chhattisgarh','Uttarakhand','Himachal Pradesh','Jammu and Kashmir','Ladakh','Chandigarh','Goa','Tripura','Meghalaya','Manipur','Nagaland','Arunachal Pradesh','Mizoram','Sikkim','Andaman and Nicobar Islands','Dadra and Nagar Haveli','Lakshadweep','Puducherry'] %}
+                        <option value="{{ state }}" {% if profile.get('state') == state %}selected{% endif %}>{{ state }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
 
             <div class="space-y-5">
@@ -221,6 +291,23 @@
                 <div><label class="text-xs font-bold text-gray-500 uppercase">Account Holder</label><input type="text" name="account_holder" value="{{ profile.get('account_holder','') }}" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}></div>
                 <div><label class="text-xs font-bold text-gray-500 uppercase">Account No</label><input type="text" name="account_no" value="{{ profile.get('account_no','') }}" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}></div>
                 <div><label class="text-xs font-bold text-gray-500 uppercase">IFSC Code</label><input type="text" name="ifsc" value="{{ profile.get('ifsc','') }}" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}></div>
+
+                <div class="bg-green-50 p-4 rounded-xl border border-green-200 mt-2">
+                    <label class="text-xs font-bold text-green-700 uppercase flex items-center gap-1 mb-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.24M16.07 7.93l1.42-1.42M7.93 7.93L6.51 6.51M4 13H2m4.07 4.07L4.65 18.5M19.07 18.5l-1.42-1.42"/></svg>
+                        UPI ID (for Invoice Payment QR)
+                    </label>
+                    <input type="text" name="upi_id" value="{{ profile.get('upi_id','') }}"
+                           placeholder="e.g. yourname@ybl or 9876543210@upi"
+                           class="w-full border border-green-300 rounded-lg p-2.5 mt-1 font-mono focus:ring-2 focus:ring-green-400 focus:border-green-500 outline-none transition bg-white"
+                           {% if not current_user.is_master %}disabled{% endif %}>
+                    <p class="text-xs text-green-600 mt-1">When set, each invoice PDF will include a UPI QR code with the invoice amount pre-filled.</p>
+                    {% if profile.get('upi_id') %}
+                    <div class="mt-2 flex items-center gap-2">
+                        <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-bold border border-green-200">✓ UPI configured: {{ profile.get('upi_id') }}</span>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
 
             <div class="col-span-1 md:col-span-2 space-y-6 border-t pt-6">
@@ -228,7 +315,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
                         <label class="block text-sm font-bold text-gray-700 mb-3">Company Logo</label>
-                        <input type="file" name="logo" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-100 file:text-orange-700 hover:file:bg-orange-200 transition" {% if not current_user.is_master %}disabled{% endif %}>
+                        <input type="file" name="logo" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-100 file:text-orange-700 hover:file:bg-orange-200 transition" {% if not current_user.is_master %}disabled{% endif %}>
                         {% if profile.get('logo_base64') %} 
                             <div class="mt-3 p-2 bg-white rounded border border-gray-100 inline-block">
                                 <img src="data:image/png;base64,{{ profile.logo_base64 }}" class="h-12 object-contain">
@@ -237,7 +324,7 @@
                     </div>
                     <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
                         <label class="block text-sm font-bold text-gray-700 mb-3">Authorized Signature</label>
-                        <input type="file" name="signature" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-100 file:text-orange-700 hover:file:bg-orange-200 transition" {% if not current_user.is_master %}disabled{% endif %}>
+                        <input type="file" name="signature" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-100 file:text-orange-700 hover:file:bg-orange-200 transition" {% if not current_user.is_master %}disabled{% endif %}>
                         {% if profile.get('signature_base64') %} 
                             <div class="mt-3 p-2 bg-white rounded border border-gray-100 inline-block">
                                 <img src="data:image/png;base64,{{ profile.signature_base64 }}" class="h-10 object-contain">
