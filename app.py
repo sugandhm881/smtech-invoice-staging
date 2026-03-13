@@ -220,7 +220,7 @@ def get_seller_profile_data(target_user_id=None):
             return res.data[0]['profile']
     except Exception as e:
         logging.error(f"Profile error: {e}")
-    return {"company_name": "SM Tech", "invoice_prefix": "SMT"}
+    return {"company_name": "Sahayak ERP", "invoice_prefix": "SHK"}
 
 def save_seller_profile_data(data, target_user_id=None):
     tenant = get_tenant_id(target_user_id)
@@ -552,7 +552,7 @@ def PDF_Generator(invoice_data, is_credit_note=False, is_debit_note=False):
         except Exception: pass
     
     pdf.set_font("Calibri", "B", 10)
-    pdf.cell(0, 5, f"For {profile.get('company_name', 'SM Tech')}", ln=True, align='R')
+    pdf.cell(0, 5, f"For {profile.get('company_name', 'Sahayak ERP')}", ln=True, align='R')
 
     sig_data = profile.get('signature_base64')
     if sig_data:

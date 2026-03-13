@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - SM Tech</title>
+    <title>Profile - Sahayak ERP</title>
+    <link rel="icon" href="/static/sayahak_logo_2.5.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 font-sans p-6">
-    <div class="max-w-6xl mx-auto bg-white shadow-xl rounded-2xl p-8">
+<body class="bg-gray-100 font-sans p-4 md:p-6">
+    <div class="max-w-6xl mx-auto bg-white shadow-xl rounded-2xl p-6 md:p-8">
         
-        <div class="flex flex-col md:flex-row justify-between items-center mb-8 border-b pb-6 gap-4">
-            <div class="flex-1">
-                <h1 class="text-3xl font-extrabold text-gray-800 tracking-tight flex items-center">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-red-600 flex items-center justify-center text-white mr-3 shadow-md">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-6 gap-4">
+            <div class="flex-1 w-full">
+                <h1 class="text-2xl md:text-3xl font-extrabold text-gray-800 tracking-tight flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-red-600 flex items-center justify-center text-white mr-3 shadow-md flex-shrink-0">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     </div>
-                    {% if current_user.is_master %}Master Settings{% else %}My Profile (Read Only){% endif %}
+                    <span>{% if current_user.is_master %}Master Settings{% else %}My Profile (Read Only){% endif %}</span>
                 </h1>
-                <p class="text-sm text-gray-500 mt-1 ml-14">Manage account details, users, and system configurations.</p>
+                <p class="text-sm text-gray-500 mt-1 md:ml-14">Manage account details, users, and system configurations.</p>
             </div>
-            <a href="{{ url_for('home') }}" class="group flex items-center px-5 py-2.5 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-all shadow-sm">
+            <a href="{{ url_for('home') }}" class="w-full md:w-auto group flex items-center justify-center px-5 py-2.5 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-all shadow-sm">
                 <svg class="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 Back to Dashboard
             </a>
@@ -37,47 +38,47 @@
 
         {% if current_user.is_master %}
         
-        <div class="bg-gradient-to-br from-orange-50 to-white border border-orange-100 rounded-2xl p-6 mb-8 shadow-sm">
+        <div class="bg-gradient-to-br from-orange-50 to-white border border-orange-100 rounded-2xl p-4 md:p-6 mb-8 shadow-sm overflow-hidden">
             <h3 class="font-bold text-lg text-gray-800 mb-4 flex items-center">
-                <span class="bg-orange-100 text-orange-600 p-1.5 rounded-lg mr-2">
+                <span class="bg-orange-100 text-orange-600 p-1.5 rounded-lg mr-2 flex-shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </span>
                 Payment & Activation Requests
             </h3>
-            <div class="overflow-x-auto rounded-xl border border-gray-100">
-                <table class="w-full text-sm text-left bg-white">
+            <div class="overflow-x-auto rounded-xl border border-gray-100 w-full">
+                <table class="w-full text-sm text-left bg-white min-w-[600px]">
                     <thead class="bg-gray-50 text-gray-700 font-bold uppercase text-xs tracking-wider">
                         <tr>
-                            <th class="p-4">Date</th>
-                            <th class="p-4">User ID</th>
-                            <th class="p-4">Amount</th>
-                            <th class="p-4">UTR / Ref No</th>
-                            <th class="p-4 text-center">Status</th>
-                            <th class="p-4 text-center">Action</th>
+                            <th class="p-3 md:p-4">Date</th>
+                            <th class="p-3 md:p-4">User ID</th>
+                            <th class="p-3 md:p-4">Amount</th>
+                            <th class="p-3 md:p-4">UTR / Ref No</th>
+                            <th class="p-3 md:p-4 text-center">Status</th>
+                            <th class="p-3 md:p-4 text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         {% if pending_requests %}
                             {% for req in pending_requests %}
                             <tr class="hover:bg-gray-50 transition">
-                                <td class="p-4 text-gray-600">{{ req.date_display }}</td>
-                                <td class="p-4 font-bold text-gray-800">{{ req.user_id }}</td>
-                                <td class="p-4 font-mono font-bold text-green-600">₹{{ req.amount }}</td>
-                                <td class="p-4 text-gray-500 font-mono text-xs">{{ req.utr }}</td>
-                                <td class="p-4 text-center">
+                                <td class="p-3 md:p-4 text-gray-600 whitespace-nowrap">{{ req.date_display }}</td>
+                                <td class="p-3 md:p-4 font-bold text-gray-800">{{ req.user_id }}</td>
+                                <td class="p-3 md:p-4 font-mono font-bold text-green-600">₹{{ req.amount }}</td>
+                                <td class="p-3 md:p-4 text-gray-500 font-mono text-xs">{{ req.utr }}</td>
+                                <td class="p-3 md:p-4 text-center">
                                     {% if req.status == 'Approved' %}
-                                        <span class="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-bold border border-green-200">Approved</span>
+                                        <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold border border-green-200 block md:inline-block w-full md:w-auto text-center">Approved</span>
                                     {% else %}
-                                        <span class="bg-yellow-100 text-yellow-700 text-xs px-2.5 py-1 rounded-full font-bold border border-yellow-200">Pending</span>
+                                        <span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full font-bold border border-yellow-200 block md:inline-block w-full md:w-auto text-center">Pending</span>
                                     {% endif %}
                                 </td>
-                                <td class="p-4 text-center">
+                                <td class="p-3 md:p-4 text-center">
                                     {% if req.status == 'Pending' %}
                                     <form method="POST">
                                         <input type="hidden" name="verify_request" value="true">
                                         <input type="hidden" name="user_to_activate" value="{{ req.user_id }}">
                                         <input type="hidden" name="request_id" value="{{ req.user_id }}_{{ req.utr }}">
-                                        <button type="submit" class="bg-green-500 text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-green-600 shadow-md transition hover:-translate-y-0.5">
+                                        <button type="submit" class="w-full md:w-auto bg-green-500 text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-green-600 shadow-md transition hover:-translate-y-0.5">
                                             Verify
                                         </button>
                                     </form>
@@ -97,20 +98,20 @@
             </div>
         </div>
 
-        <div class="bg-white border border-gray-200 rounded-2xl p-6 mb-8 shadow-sm">
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 md:p-6 mb-8 shadow-sm">
             <h3 class="font-bold text-lg text-gray-800 mb-4 flex items-center">
-                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg mr-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg mr-2 flex-shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
                 </span>
                 Create New User
             </h3>
             <form method="POST" class="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col gap-4">
-                <div class="flex flex-col md:flex-row gap-4 items-end">
-                    <div class="flex-1 w-full">
+                <div class="flex flex-col md:flex-row gap-4 items-start md:items-end">
+                    <div class="w-full md:flex-1">
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Username</label>
                         <input type="text" name="new_username" class="border border-gray-300 rounded-lg p-3 text-sm w-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="e.g. user_delhi" required>
                     </div>
-                    <div class="flex-1 w-full">
+                    <div class="w-full md:flex-1">
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Password</label>
                         <input type="text" name="new_password" class="border border-gray-300 rounded-lg p-3 text-sm w-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="Secret Password" required>
                     </div>
@@ -118,7 +119,7 @@
                         + Create User
                     </button>
                 </div>
-                <div class="flex items-center gap-6 mt-1 ml-1">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 mt-1 sm:ml-1">
                     <span class="text-sm font-bold text-gray-700">Initial Permissions:</span>
                     <label class="flex items-center text-sm font-bold text-gray-600 gap-2 cursor-pointer select-none">
                         <input type="checkbox" name="new_perm_sale" value="true" checked class="w-4 h-4 text-blue-600 rounded"> Sale Access
@@ -132,15 +133,15 @@
         
         <div class="mb-8 bg-orange-50 p-4 rounded-xl border border-orange-100">
             <label class="block text-sm font-bold text-orange-800 mb-2 ml-1">Select Existing User to Manage:</label>
-            <div class="relative">
-                <select onchange="window.location.href='?edit_user='+this.value" class="appearance-none border border-orange-200 p-3 rounded-lg w-full md:w-1/2 bg-white shadow-sm focus:ring-2 focus:ring-orange-500 focus:outline-none text-gray-800 font-bold cursor-pointer transition">
+            <div class="relative w-full md:w-1/2">
+                <select onchange="window.location.href='?edit_user='+this.value" class="appearance-none border border-orange-200 p-3 rounded-lg w-full bg-white shadow-sm focus:ring-2 focus:ring-orange-500 focus:outline-none text-gray-800 font-bold cursor-pointer transition pr-10">
                     {% for u in all_users %}
                         <option value="{{ u }}" {% if target_user == u %}selected{% endif %}>
                             {{ u }} {% if u == current_user.id %} (Master Admin) {% endif %}
                         </option>
                     {% endfor %}
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-orange-500 md:right-1/2">
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-orange-500">
                     <svg class="fill-current h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                 </div>
             </div>
@@ -148,20 +149,20 @@
 
         {% if target_user != current_user.id %}
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
             
-            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
+            <div class="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
                 <div>
                     <h3 class="font-bold text-gray-800 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        <svg class="w-5 h-5 mr-2 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                         Login Access
                     </h3>
                     <p class="text-sm text-gray-500 mt-2 mb-4">
                         Status: 
                         {% if target_is_active %}
-                            <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded font-bold text-xs ml-1">Active</span>
+                            <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded font-bold text-xs ml-1 whitespace-nowrap">Active</span>
                         {% else %}
-                            <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded font-bold text-xs ml-1">Inactive</span>
+                            <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded font-bold text-xs ml-1 whitespace-nowrap">Inactive</span>
                         {% endif %}
                     </p>
                 </div>
@@ -176,10 +177,10 @@
                 </form>
             </div>
 
-            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
+            <div class="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
                 <div>
                     <h3 class="font-bold text-gray-800 flex items-center mb-3">
-                        <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        <svg class="w-5 h-5 mr-2 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                         Modules
                     </h3>
                     <form method="POST" class="space-y-3">
@@ -196,10 +197,10 @@
                 </form>
             </div>
 
-            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
+            <div class="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
                 <div>
                     <h3 class="font-bold text-gray-800 flex items-center mb-3">
-                        <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                        <svg class="w-5 h-5 mr-2 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
                         Password
                     </h3>
                     <p class="text-xs text-gray-500 mb-4">Set a new login password.</p>
@@ -211,10 +212,10 @@
                 </form>
             </div>
 
-            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
+            <div class="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
                 <div>
                     <h3 class="font-bold text-gray-800 flex items-center mb-3">
-                        <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        <svg class="w-5 h-5 mr-2 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         Rename ID
                     </h3>
                     <p class="text-xs text-gray-500 mb-4">Change this user's login username.</p>
@@ -230,20 +231,20 @@
         {% endif %}
         {% endif %}
 
-        <form method="POST" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
+        <form method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 relative">
             <input type="hidden" name="target_user_id" value="{{ target_user }}">
             
             {% if not current_user.is_master %}
             <div class="absolute inset-0 bg-white/60 z-10 cursor-not-allowed rounded-lg flex items-center justify-center backdrop-blur-[1px]">
-                <div class="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
-                    <p class="text-gray-500 font-medium text-sm">⚠️ Contact Administrator to change details.</p>
+                <div class="bg-white p-4 rounded-lg shadow-lg border border-gray-200 mx-4">
+                    <p class="text-gray-500 font-medium text-sm text-center">⚠️ Contact Administrator to change details.</p>
                 </div>
             </div>
             {% endif %}
 
-            <div class="col-span-1 md:col-span-2 bg-gray-50 p-6 rounded-xl border border-gray-200">
+            <div class="col-span-1 lg:col-span-2 bg-gray-50 p-4 md:p-6 rounded-xl border border-gray-200">
                 <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-200 pb-2">Invoice Configuration</h3>
-                <div class="flex flex-col md:flex-row items-start md:items-end gap-6 flex-wrap">
+                <div class="flex flex-col md:flex-row items-start md:items-end gap-4 md:gap-6 flex-wrap">
                     <div class="flex-1 w-full min-w-[180px]">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Invoice Number Prefix</label>
                         <input type="text" name="invoice_prefix" value="{{ profile.get('invoice_prefix','TE') }}" class="w-full border border-gray-300 rounded-lg p-3 uppercase font-bold text-gray-800 focus:ring-2 focus:ring-orange-500 focus:outline-none" {% if not current_user.is_master %}disabled{% endif %}>
@@ -266,7 +267,7 @@
                 </div>
             </div>
 
-            <div class="space-y-5">
+            <div class="space-y-4 md:space-y-5">
                 <h3 class="font-bold text-lg text-gray-800 border-b border-gray-200 pb-2">Company Details</h3>
                 <div><label class="text-xs font-bold text-gray-500 uppercase">Company Name</label><input type="text" name="company_name" value="{{ profile.get('company_name','') }}" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}></div>
                 <div><label class="text-xs font-bold text-gray-500 uppercase">Address Line 1</label><input type="text" name="address_1" value="{{ profile.get('address_1','') }}" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}></div>
@@ -276,7 +277,7 @@
                 <div><label class="text-xs font-bold text-gray-500 uppercase">GSTIN</label><input type="text" name="gstin" value="{{ profile.get('gstin','') }}" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 uppercase focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}></div>
                 <div>
                     <label class="text-xs font-bold text-gray-500 uppercase">Business State</label>
-                    <select name="state" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}>
+                    <select name="state" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition bg-white" {% if not current_user.is_master %}disabled{% endif %}>
                         <option value="">Select State</option>
                         {% for state in ['Delhi','Haryana','Uttar Pradesh','Maharashtra','Karnataka','Tamil Nadu','Gujarat','Rajasthan','West Bengal','Punjab','Andhra Pradesh','Telangana','Madhya Pradesh','Bihar','Odisha','Kerala','Jharkhand','Assam','Chhattisgarh','Uttarakhand','Himachal Pradesh','Jammu and Kashmir','Ladakh','Chandigarh','Goa','Tripura','Meghalaya','Manipur','Nagaland','Arunachal Pradesh','Mizoram','Sikkim','Andaman and Nicobar Islands','Dadra and Nagar Haveli','Lakshadweep','Puducherry'] %}
                         <option value="{{ state }}" {% if profile.get('state') == state %}selected{% endif %}>{{ state }}</option>
@@ -285,14 +286,14 @@
                 </div>
             </div>
 
-            <div class="space-y-5">
+            <div class="space-y-4 md:space-y-5">
                 <h3 class="font-bold text-lg text-gray-800 border-b border-gray-200 pb-2">Bank Details</h3>
                 <div><label class="text-xs font-bold text-gray-500 uppercase">Bank Name</label><input type="text" name="bank_name" value="{{ profile.get('bank_name','') }}" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}></div>
                 <div><label class="text-xs font-bold text-gray-500 uppercase">Account Holder</label><input type="text" name="account_holder" value="{{ profile.get('account_holder','') }}" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}></div>
                 <div><label class="text-xs font-bold text-gray-500 uppercase">Account No</label><input type="text" name="account_no" value="{{ profile.get('account_no','') }}" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}></div>
                 <div><label class="text-xs font-bold text-gray-500 uppercase">IFSC Code</label><input type="text" name="ifsc" value="{{ profile.get('ifsc','') }}" class="w-full border border-gray-300 rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition" {% if not current_user.is_master %}disabled{% endif %}></div>
 
-                <div class="bg-green-50 p-4 rounded-xl border border-green-200 mt-2">
+                <div class="bg-green-50 p-4 rounded-xl border border-green-200 mt-4 md:mt-2">
                     <label class="text-xs font-bold text-green-700 uppercase flex items-center gap-1 mb-1">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.24M16.07 7.93l1.42-1.42M7.93 7.93L6.51 6.51M4 13H2m4.07 4.07L4.65 18.5M19.07 18.5l-1.42-1.42"/></svg>
                         UPI ID (for Invoice Payment QR)
@@ -310,24 +311,30 @@
                 </div>
             </div>
 
-            <div class="col-span-1 md:col-span-2 space-y-6 border-t pt-6">
+            <div class="col-span-1 lg:col-span-2 space-y-6 border-t pt-6">
                 <h3 class="font-bold text-lg text-gray-800">Branding Assets</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 overflow-hidden">
                         <label class="block text-sm font-bold text-gray-700 mb-3">Company Logo</label>
-                        <input type="file" name="logo" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-100 file:text-orange-700 hover:file:bg-orange-200 transition" {% if not current_user.is_master %}disabled{% endif %}>
+                        <input type="file" name="logo" accept="image/*" class="block w-full text-xs md:text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-orange-100 file:text-orange-700 hover:file:bg-orange-200 transition" {% if not current_user.is_master %}disabled{% endif %}>
+                        
                         {% if profile.get('logo_base64') %} 
-                            <div class="mt-3 p-2 bg-white rounded border border-gray-100 inline-block">
-                                <img src="data:image/png;base64,{{ profile.logo_base64 }}" class="h-12 object-contain">
+                            <div class="mt-3 p-2 bg-white rounded border border-gray-100 inline-block max-w-full">
+                                <img src="data:image/png;base64,{{ profile.logo_base64 }}" class="h-12 object-contain max-w-full">
+                            </div>
+                        {% else %}
+                            <div class="mt-3 p-2 bg-white rounded border border-gray-100 inline-block max-w-full">
+                                <img src="/static/Sahayak_logo.png" class="h-12 object-contain max-w-full">
                             </div>
                         {% endif %}
+
                     </div>
-                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 overflow-hidden">
                         <label class="block text-sm font-bold text-gray-700 mb-3">Authorized Signature</label>
-                        <input type="file" name="signature" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-100 file:text-orange-700 hover:file:bg-orange-200 transition" {% if not current_user.is_master %}disabled{% endif %}>
+                        <input type="file" name="signature" accept="image/*" class="block w-full text-xs md:text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-orange-100 file:text-orange-700 hover:file:bg-orange-200 transition" {% if not current_user.is_master %}disabled{% endif %}>
                         {% if profile.get('signature_base64') %} 
-                            <div class="mt-3 p-2 bg-white rounded border border-gray-100 inline-block">
-                                <img src="data:image/png;base64,{{ profile.signature_base64 }}" class="h-10 object-contain">
+                            <div class="mt-3 p-2 bg-white rounded border border-gray-100 inline-block max-w-full">
+                                <img src="data:image/png;base64,{{ profile.signature_base64 }}" class="h-10 object-contain max-w-full">
                             </div>
                         {% endif %}
                     </div>
@@ -335,8 +342,8 @@
             </div>
 
             {% if current_user.is_master %}
-            <div class="col-span-1 md:col-span-2 text-center mt-4 pb-4">
-                <button type="submit" class="bg-gradient-to-r from-orange-500 to-red-600 text-white px-12 py-4 rounded-full font-bold text-lg hover:from-orange-600 hover:to-red-700 shadow-xl transform hover:-translate-y-1 transition-all duration-200">
+            <div class="col-span-1 lg:col-span-2 text-center mt-4 pb-4">
+                <button type="submit" class="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-600 text-white px-12 py-3 md:py-4 rounded-full font-bold text-base md:text-lg hover:from-orange-600 hover:to-red-700 shadow-xl transform hover:-translate-y-1 transition-all duration-200">
                     Save Changes
                 </button>
             </div>

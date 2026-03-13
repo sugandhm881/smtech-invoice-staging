@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard - {{ profile.get('company_name', 'SM Tech') }}</title>
+<title>Dashboard - {{ profile.get('company_name', 'Sahayak ERP') }}</title>
+<link rel="icon" href="/static/sayahak_logo_2.5.png" type="image/png">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.default.min.css" rel="stylesheet">
@@ -27,98 +28,115 @@
     .ts-wrapper .ts-control { border-radius: 0.5rem; padding: 0.5rem 0.75rem; border-color: #e5e7eb; font-size: 0.875rem; min-height: 38px; background: #fff;}
     .ts-wrapper.focus .ts-control { border-color: #fbd38d; box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.2); }
     .ts-dropdown { border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+    
+    /* Fix Dropdown Width & Truncation */
+    .ts-wrapper.single .ts-control { padding-right: 2.5rem !important; }
+    .ts-wrapper.single .ts-control .item { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: block; }
 </style>
 </head>
 <body class="bg-gray-100 font-sans">
 
 <div class="bg-white shadow-sm border-b sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-        <div class="flex items-center gap-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-4 w-full md:w-auto justify-center md:justify-start">
             {% if profile.get('logo_base64') %}
                 <img src="data:image/png;base64,{{ profile.logo_base64 }}" class="h-10 object-contain">
             {% else %}
-                <img src="/static/logo.png" class="h-10 object-contain">
+                <img src="/static/Sahayak_logo.png" class="h-10 object-contain">
             {% endif %}
-            <div>
-                <h1 class="font-extrabold text-gray-800 text-lg leading-none">{{ profile.get('company_name', 'SM Tech') }}</h1>
-                <p class="text-xs text-gray-400 tracking-widest">ERP DASHBOARD</p>
+            <div class="text-center md:text-left">
+                <h1 class="font-extrabold text-gray-800 text-lg leading-none">
+                    {% if profile.get('company_name') and profile.get('company_name') not in ['SM Tech', 'Sahayak ERP'] %}
+                        {{ profile.get('company_name') }}
+                    {% else %}
+                        <span class="text-orange-500 text-[115%]">सहा</span>Yak <span class="text-gray-500 text-sm tracking-wide ml-0.5">ERP</span>
+                    {% endif %}
+                </h1>
+                <p class="text-xs text-gray-400 tracking-widest mt-1">ERP DASHBOARD</p>
             </div>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center justify-center gap-2 md:gap-3 w-full md:w-auto">
             {% if current_user.is_master %}
-            <div style="min-width: 150px;">
-                <select id="view_as_select" class="w-full">
-                    {% for u in all_users %}
-                    <option value="{{ u }}" {% if viewing_user == u %}selected{% endif %}>{{ u }}{% if u == current_user.id %} (Me){% endif %}</option>
-                    {% endfor %}
-                </select>
+            <div class="flex items-center gap-2 w-full md:w-auto mb-2 md:mb-0">
+                <span class="text-[10px] font-bold text-gray-400 tracking-wider whitespace-nowrap">VIEW AS</span>
+                <div style="min-width: 200px; flex: 1;">
+                    <select id="view_as_select" class="w-full text-sm">
+                        {% for u in all_users %}
+                            <option value="{{ u }}" {% if viewing_user == u %}selected{% endif %}>
+                                {{ u }}{% if u == current_user.id %} (Me){% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
             {% endif %}
-            <a href="/home" class="px-4 py-2 bg-orange-500 text-white text-sm font-bold rounded-lg hover:bg-orange-600 transition flex items-center gap-1.5">
+            <a href="/home" class="flex-1 md:flex-none text-center px-4 py-2 bg-orange-500 text-white text-sm font-bold rounded-lg hover:bg-orange-600 transition flex items-center justify-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                New Document
+                New Doc
             </a>
-            <a href="/profile" class="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition">Settings</a>
-            <a href="/logout" class="px-4 py-2 border border-red-200 text-red-500 text-sm font-semibold rounded-lg hover:bg-red-50 transition">Logout</a>
+            <a href="/profile" class="flex-1 md:flex-none text-center px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition">Settings</a>
+            <a href="/logout" class="flex-1 md:flex-none text-center px-4 py-2 border border-red-200 text-red-500 text-sm font-semibold rounded-lg hover:bg-red-50 transition">Logout</a>
         </div>
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto px-6 py-6">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="kpiCards">
-        <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Today's Sales</p>
-            <p class="text-2xl font-extrabold text-gray-800">₹<span id="kpi_today_sales">--</span></p>
-            <p class="text-xs text-gray-400 mt-1">This Month: ₹<span id="kpi_month_sales">--</span></p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6" id="kpiCards">
+        <div class="stat-card bg-white rounded-2xl p-4 md:p-5 border border-gray-100 shadow-sm text-center md:text-left">
+            <p class="text-[10px] md:text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Today's Sales</p>
+            <p class="text-xl md:text-2xl font-extrabold text-gray-800">₹<span id="kpi_today_sales">--</span></p>
+            <p class="text-[10px] md:text-xs text-gray-400 mt-1">This Month: ₹<span id="kpi_month_sales">--</span></p>
         </div>
-        <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Today's Purchase</p>
-            <p class="text-2xl font-extrabold text-gray-800">₹<span id="kpi_today_purchase">--</span></p>
-            <p class="text-xs text-gray-400 mt-1">This Month: ₹<span id="kpi_month_purchase">--</span></p>
+        <div class="stat-card bg-white rounded-2xl p-4 md:p-5 border border-gray-100 shadow-sm text-center md:text-left">
+            <p class="text-[10px] md:text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Today's Purchase</p>
+            <p class="text-xl md:text-2xl font-extrabold text-gray-800">₹<span id="kpi_today_purchase">--</span></p>
+            <p class="text-[10px] md:text-xs text-gray-400 mt-1">This Month: ₹<span id="kpi_month_purchase">--</span></p>
         </div>
-        <div class="stat-card bg-white rounded-2xl p-5 border border-orange-100 shadow-sm cursor-pointer" onclick="switchTab('outstanding')">
-            <p class="text-xs text-orange-400 font-bold uppercase tracking-wider mb-1">Outstanding</p>
-            <p class="text-2xl font-extrabold text-orange-600">₹<span id="kpi_outstanding_total">--</span></p>
-            <p class="text-xs text-orange-400 mt-1"><span id="kpi_outstanding_count">--</span> unpaid invoices</p>
+        <div class="stat-card bg-white rounded-2xl p-4 md:p-5 border border-orange-100 shadow-sm cursor-pointer text-center md:text-left" onclick="switchTab('outstanding')">
+            <p class="text-[10px] md:text-xs text-orange-400 font-bold uppercase tracking-wider mb-1">Outstanding</p>
+            <p class="text-xl md:text-2xl font-extrabold text-orange-600">₹<span id="kpi_outstanding_total">--</span></p>
+            <p class="text-[10px] md:text-xs text-orange-400 mt-1"><span id="kpi_outstanding_count">--</span> unpaid invoices</p>
         </div>
-        <div class="stat-card bg-white rounded-2xl p-5 border border-red-100 shadow-sm" id="lowStockCard">
-            <p class="text-xs text-red-400 font-bold uppercase tracking-wider mb-1">Low Stock Items</p>
-            <p class="text-2xl font-extrabold text-red-600"><span id="kpi_low_stock">--</span></p>
-            <p class="text-xs text-red-400 mt-1">Below reorder level</p>
+        <div class="stat-card bg-white rounded-2xl p-4 md:p-5 border border-red-100 shadow-sm text-center md:text-left" id="lowStockCard">
+            <p class="text-[10px] md:text-xs text-red-400 font-bold uppercase tracking-wider mb-1">Low Stock Items</p>
+            <p class="text-xl md:text-2xl font-extrabold text-red-600"><span id="kpi_low_stock">--</span></p>
+            <p class="text-[10px] md:text-xs text-red-400 mt-1">Below reorder level</p>
         </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="md:col-span-2 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+        <div class="md:col-span-2 bg-white rounded-2xl p-4 md:p-5 border border-gray-100 shadow-sm">
             <h3 class="font-bold text-gray-700 mb-3 text-sm uppercase tracking-wide">Monthly Sales Trend</h3>
-            <canvas id="salesChart" height="80"></canvas>
+            <div class="relative w-full h-48 md:h-auto"><canvas id="salesChart"></canvas></div>
         </div>
-        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+        <div class="bg-white rounded-2xl p-4 md:p-5 border border-gray-100 shadow-sm">
             <h3 class="font-bold text-gray-700 mb-3 text-sm uppercase tracking-wide">Top 5 Clients</h3>
-            <div id="topClientsList" class="space-y-2"></div>
+            <div id="topClientsList" class="space-y-3 md:space-y-2"></div>
         </div>
     </div>
 
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm">
-        <div class="border-b flex overflow-x-auto">
-            <button class="tab-btn active px-6 py-4 text-sm text-gray-500 whitespace-nowrap" onclick="switchTab('history')" id="tab-history">📋 Document History</button>
-            <button class="tab-btn px-6 py-4 text-sm text-gray-500 whitespace-nowrap" onclick="switchTab('outstanding')" id="tab-outstanding">💰 Outstanding</button>
-            <button class="tab-btn px-6 py-4 text-sm text-gray-500 whitespace-nowrap" onclick="switchTab('payments')" id="tab-payments">🏦 Record Payment</button>
-            <button class="tab-btn px-6 py-4 text-sm text-gray-500 whitespace-nowrap" onclick="switchTab('ledger')" id="tab-ledger">📒 Party Ledger</button>
+        <div class="border-b flex overflow-x-auto custom-scrollbar">
+            <button class="tab-btn active px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-500 whitespace-nowrap" onclick="switchTab('history')" id="tab-history">📋 Document History</button>
+            <button class="tab-btn px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-500 whitespace-nowrap" onclick="switchTab('outstanding')" id="tab-outstanding">💰 Outstanding</button>
+            <button class="tab-btn px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-500 whitespace-nowrap" onclick="switchTab('payments')" id="tab-payments">🏦 Record Payment</button>
+            <button class="tab-btn px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-500 whitespace-nowrap" onclick="switchTab('ledger')" id="tab-ledger">📒 Party Ledger</button>
         </div>
 
-        <div id="panel-history" class="p-5">
+        <div id="panel-history" class="p-4 md:p-5">
             <div class="flex flex-col md:flex-row gap-3 mb-4">
-                <input type="text" id="histSearch" placeholder="Search by Doc No or Party..." class="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 focus:ring-2 focus:ring-orange-300 focus:outline-none" oninput="filterHistory()">
-                <input type="date" id="histDateFrom" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" onchange="filterHistory()">
-                <input type="date" id="histDateTo" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" onchange="filterHistory()">
+                <input type="text" id="histSearch" placeholder="Search by Doc No or Party..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 focus:ring-2 focus:ring-orange-300 focus:outline-none" oninput="filterHistory()">
+                <div class="flex gap-2 w-full md:w-auto">
+                    <input type="date" id="histDateFrom" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm" onchange="filterHistory()">
+                    <input type="date" id="histDateTo" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm" onchange="filterHistory()">
+                </div>
                 
-                <div style="min-width: 180px;">
+                <div class="w-full md:w-48">
                     <select id="histTypeFilter"></select>
                 </div>
-                <div style="min-width: 150px;">
+                <div class="w-full md:w-40">
                     <select id="histStatusFilter">
                         <option value="">All Statuses</option>
                         <option value="Draft">Draft</option>
@@ -129,15 +147,15 @@
                 </div>
             </div>
             
-            <div class="flex gap-2 mb-3">
-                <button onclick="selectAll(true)" class="text-xs px-3 py-1.5 bg-gray-100 rounded hover:bg-gray-200 font-medium">Select All</button>
-                <button onclick="selectAll(false)" class="text-xs px-3 py-1.5 bg-gray-100 rounded hover:bg-gray-200 font-medium">Deselect</button>
-                <button onclick="downloadZip()" class="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700 font-medium">Download ZIP</button>
-                <a href="/download-report" class="text-xs px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700 font-medium flex items-center justify-center">Excel Report</a>
-                <button onclick="openGstrModal()" class="text-xs px-3 py-1.5 bg-teal-600 text-white rounded hover:bg-teal-700 font-medium flex items-center justify-center">GSTR-1</button>
+            <div class="flex flex-wrap gap-2 mb-3">
+                <button onclick="selectAll(true)" class="flex-1 md:flex-none text-xs px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 font-medium">Select All</button>
+                <button onclick="selectAll(false)" class="flex-1 md:flex-none text-xs px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 font-medium">Clear</button>
+                <button onclick="downloadZip()" class="w-full md:w-auto text-xs px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 font-medium">Download ZIP</button>
+                <a href="/download-report" class="flex-1 md:flex-none text-xs px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium flex items-center justify-center">Excel Report</a>
+                <button onclick="openGstrModal()" class="flex-1 md:flex-none text-xs px-3 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 font-medium flex items-center justify-center">GSTR-1</button>
             </div>
-            <div class="overflow-x-auto max-h-[500px] border rounded-xl">
-                <table class="w-full text-sm">
+            <div class="overflow-x-auto max-h-[500px] border rounded-xl shadow-inner">
+                <table class="w-full text-sm min-w-[800px]">
                     <thead class="bg-gray-50 sticky top-0 z-10">
                         <tr class="text-xs text-gray-500 uppercase tracking-wide">
                             <th class="p-3 w-8">✓</th>
@@ -155,27 +173,27 @@
             <p class="text-xs text-gray-400 mt-2">Showing <span id="histCount">0</span> documents</p>
         </div>
 
-        <div id="panel-outstanding" class="p-5 hidden">
-            <div class="grid grid-cols-4 gap-3 mb-4" id="ageBuckets">
+        <div id="panel-outstanding" class="p-4 md:p-5 hidden">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4" id="ageBuckets">
                 <div class="bg-green-50 rounded-xl p-3 border border-green-100 text-center">
                     <p class="text-xs text-green-600 font-bold">0-30 Days</p>
-                    <p class="text-xl font-extrabold text-green-700">₹<span id="age0">0</span></p>
+                    <p class="text-lg md:text-xl font-extrabold text-green-700">₹<span id="age0">0</span></p>
                 </div>
                 <div class="bg-yellow-50 rounded-xl p-3 border border-yellow-100 text-center">
                     <p class="text-xs text-yellow-600 font-bold">31-60 Days</p>
-                    <p class="text-xl font-extrabold text-yellow-700">₹<span id="age30">0</span></p>
+                    <p class="text-lg md:text-xl font-extrabold text-yellow-700">₹<span id="age30">0</span></p>
                 </div>
                 <div class="bg-orange-50 rounded-xl p-3 border border-orange-100 text-center">
                     <p class="text-xs text-orange-600 font-bold">61-90 Days</p>
-                    <p class="text-xl font-extrabold text-orange-700">₹<span id="age60">0</span></p>
+                    <p class="text-lg md:text-xl font-extrabold text-orange-700">₹<span id="age60">0</span></p>
                 </div>
                 <div class="bg-red-50 rounded-xl p-3 border border-red-100 text-center">
                     <p class="text-xs text-red-600 font-bold">90+ Days</p>
-                    <p class="text-xl font-extrabold text-red-700">₹<span id="age90">0</span></p>
+                    <p class="text-lg md:text-xl font-extrabold text-red-700">₹<span id="age90">0</span></p>
                 </div>
             </div>
-            <div class="overflow-x-auto border rounded-xl">
-                <table class="w-full text-sm">
+            <div class="overflow-x-auto border rounded-xl shadow-inner">
+                <table class="w-full text-sm min-w-[700px]">
                     <thead class="bg-gray-50">
                         <tr class="text-xs text-gray-500 uppercase tracking-wide">
                             <th class="p-3 text-left">Invoice No</th>
@@ -193,9 +211,9 @@
             </div>
         </div>
 
-        <div id="panel-payments" class="p-5 hidden">
+        <div id="panel-payments" class="p-4 md:p-5 hidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                <div class="bg-gray-50 rounded-xl p-4 md:p-5 border border-gray-200">
                     <h3 class="font-bold text-gray-800 mb-4">Record Payment / Receipt</h3>
                     <div class="space-y-4">
                         <div>
@@ -213,7 +231,7 @@
                             <label class="text-xs font-bold text-gray-500 uppercase">Amount (₹)</label>
                             <input type="number" id="pay_amount" placeholder="0.00" class="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 text-sm focus:ring-2 focus:ring-orange-300 focus:outline-none">
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="text-xs font-bold text-gray-500 uppercase">Mode</label>
                                 <select id="pay_mode" class="w-full">
@@ -245,8 +263,8 @@
 
                 <div>
                     <h3 class="font-bold text-gray-800 mb-4">Recent Payments</h3>
-                    <div class="overflow-y-auto max-h-[500px] border rounded-xl">
-                        <table class="w-full text-sm">
+                    <div class="overflow-y-auto max-h-[500px] border rounded-xl shadow-inner">
+                        <table class="w-full text-sm min-w-[400px]">
                             <thead class="bg-gray-50 sticky top-0">
                                 <tr class="text-xs text-gray-500 uppercase tracking-wide">
                                     <th class="p-3 text-left">Date</th>
@@ -262,13 +280,13 @@
             </div>
         </div>
 
-        <div id="panel-ledger" class="p-5 hidden">
-            <div class="mb-5 max-w-md">
+        <div id="panel-ledger" class="p-4 md:p-5 hidden">
+            <div class="mb-5 max-w-md w-full">
                 <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Select Party to View Ledger</label>
                 <select id="ledgerParty" class="w-full" placeholder="Search party name..."></select>
             </div>
 
-            <div id="ledgerSummary" class="hidden mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div id="ledgerSummary" class="hidden mb-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div class="bg-blue-50 rounded-xl p-4 border border-blue-100 text-center">
                     <p class="text-xs text-blue-500 font-bold uppercase">Total Debit (Dr)</p>
                     <p class="text-xl font-extrabold text-blue-700">₹<span id="ledger_dr">0</span></p>
@@ -283,8 +301,8 @@
                 </div>
             </div>
             
-            <div class="overflow-x-auto border rounded-xl">
-                <table class="w-full text-sm">
+            <div class="overflow-x-auto border rounded-xl shadow-inner">
+                <table class="w-full text-sm min-w-[600px]">
                     <thead class="bg-gray-50 sticky top-0">
                         <tr class="text-xs text-gray-500 uppercase tracking-wide">
                             <th class="p-3 text-left">Date</th>
@@ -321,7 +339,6 @@
 </div>
 
 <script>
-// FIX: Quotes around Jinja syntax so VSCode parser doesn't throw syntax errors
 const INVOICE_TYPE = "{{ profile.get('invoice_type', 'goods') }}";
 const IS_SERVICE = (INVOICE_TYPE === 'service');
 const PERM_SALE = ("{{ 'true' if current_user.has_permission('sale') else 'false' }}" === "true");
@@ -334,7 +351,6 @@ let salesChart = null;
 let tsViewAs, tsTypeFilter, tsStatusFilter, tsPayType, tsPayMode, payPartyTs, ledgerTs, gstrTs;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Hide low stock if service mode
     if (IS_SERVICE) {
         const lowStockCard = document.getElementById('lowStockCard');
         if (lowStockCard) lowStockCard.style.display = 'none';
@@ -343,10 +359,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (document.getElementById('view_as_select')) {
-        tsViewAs = new TomSelect("#view_as_select", { controlInput: null, onChange: val => { if(val) window.location.href='/set-view-mode/'+val; }});
+        tsViewAs = new TomSelect("#view_as_select", {
+            create: false,
+            controlInput: null,
+            onChange: val => { if(val) window.location.href='/set-view-mode/'+val; }
+        });
+        // The options and selected value are automatically grabbed from the HTML!
     }
 
-    // Init Document Type Filter based on Permissions
     let typeOptions = [{value: '', text: 'All Document Types'}];
     if (PERM_SALE) {
         typeOptions.push({value: 'invoice', text: 'Tax Invoice (Sale)'});
@@ -382,7 +402,6 @@ function setDefaultDates() {
     document.getElementById('pay_date').value = today.toISOString().split('T')[0];
 }
 
-// Convert YYYY-MM-DD from calendar to DD-Mon-YYYY for backend
 function formatToDDMonYYYY(ymdStr) {
     if (!ymdStr) return '';
     const parts = ymdStr.split('-');
@@ -393,7 +412,6 @@ function formatToDDMonYYYY(ymdStr) {
     return ymdStr;
 }
 
-// Convert DD-Mon-YYYY from backend to YYYY-MM-DD for native input
 function convertDateForInput(d) {
   if(!d) return "";
   const parts = d.split('-'); 
@@ -429,7 +447,7 @@ async function loadDashboardData() {
                 labels,
                 datasets: [{ label: 'Sales (₹)', data: values, backgroundColor: 'rgba(249,115,22,0.7)', borderColor: '#f97316', borderWidth: 1, borderRadius: 6 }]
             },
-            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => '₹' + fmt(v) } } } }
+            options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => '₹' + fmt(v) } } } }
         });
 
         const tcEl = document.getElementById('topClientsList');
@@ -617,7 +635,6 @@ async function emailSingle(bno) {
     alert(d.message || d.error);
 }
 
-// --- GSTR-1 MODAL LOGIC ---
 function openGstrModal() {
     const months = new Set();
     allInvoices.filter(i => (i.doc_category === 'sale' || !i.doc_category)).forEach(inv => {
@@ -625,7 +642,6 @@ function openGstrModal() {
         if(d) {
             const p = d.split('-');
             if(p.length === 3) {
-                // Handle DD-Mon-YYYY
                 const monthName = isNaN(parseInt(p[1])) ? p[1] : new Date(0, parseInt(p[1])-1).toLocaleString('default', { month: 'short' });
                 months.add(`${monthName} ${p[2]}`);
             }
@@ -636,12 +652,7 @@ function openGstrModal() {
     if (options.length === 0) options = [{value: '', text: 'No Sales Data Found'}];
 
     if(gstrTs) gstrTs.destroy();
-    gstrTs = new TomSelect('#gstrMonthSelect', {
-        options: options,
-        create: false,
-        placeholder: 'Select Month & Year...'
-    });
-    
+    gstrTs = new TomSelect('#gstrMonthSelect', { options: options, create: false, placeholder: 'Select Month & Year...' });
     document.getElementById('gstrModal').classList.remove('hidden');
 }
 
@@ -654,7 +665,6 @@ function downloadGstr1() {
     closeGstrModal();
 }
 
-// ---- OUTSTANDING ----
 async function loadOutstanding() {
     try {
         const res = await fetch('/outstanding');
@@ -686,7 +696,6 @@ async function loadOutstanding() {
     } catch(e) {}
 }
 
-// ---- PAYMENTS ----
 function renderPaymentsTable(data) {
     document.getElementById('paymentsTableBody').innerHTML = data.slice(0,50).map(p => `
         <tr class="border-b hover:bg-gray-50">
@@ -746,7 +755,6 @@ async function submitPayment() {
     } catch(e) { alert('Network error'); }
 }
 
-// ---- LEDGER ----
 async function loadLedger(party) {
     if (!party) return;
 

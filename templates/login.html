@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - SM Tech</title>
+    <title>Login - Sahayak ERP</title>
+    <link rel="icon" href="/static/sayahak_logo_2.5.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 flex items-center justify-center h-screen transition-colors duration-500" id="bodyBg">
@@ -11,10 +12,10 @@
     <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-sm text-center transform transition-all duration-300" id="loginCard">
         
         <div class="h-32 flex items-center justify-center mb-4">
-            <img id="brandLogo" src="/static/logo.png" alt="Logo" class="max-h-full max-w-full object-contain transition-opacity duration-300">
+            <img id="brandLogo" src="/static/Sahayak_logo.png" alt="Logo" class="max-h-full max-w-full object-contain transition-opacity duration-300">
         </div>
 
-        <h1 id="brandTitle" class="text-2xl font-bold mb-6 text-gray-800 transition-all duration-300">Login to SM Tech</h1>
+        <h1 id="brandTitle" class="text-2xl font-bold mb-6 text-gray-800 transition-all duration-300">Login to Sahayak ERP</h1>
 
         {% if error %}
             <div class="bg-red-100 text-red-700 p-2 rounded mb-4 text-sm font-semibold border border-red-200">{{ error }}</div>
@@ -36,10 +37,9 @@
     </div>
 
 <script>
-    // Debounce function to prevent too many API calls
     let timeout = null;
-    const defaultLogo = "/static/logo.png";
-    const defaultTitle = "Login to SM Tech";
+    const defaultLogo = "/static/Sahayak_logo.png";
+    const defaultTitle = "Login to Sahayak ERP";
 
     function fetchBranding() {
         const username = document.getElementById('usernameInput').value.trim();
@@ -51,22 +51,17 @@
             return;
         }
 
-        // Fetch user specific branding
         fetch(`/api/get-branding/${username}`)
             .then(response => response.json())
             .then(data => {
                 if (data.found) {
-                    // Update Title
                     titleText.innerText = data.company_name || defaultTitle;
-                    
-                    // Update Logo
                     if (data.logo_base64) {
                         logoImg.src = "data:image/png;base64," + data.logo_base64;
                     } else {
                         logoImg.src = defaultLogo;
                     }
                 } else {
-                    // If user not found, revert to default
                     resetBranding();
                 }
             })
@@ -81,7 +76,6 @@
         document.getElementById('brandTitle').innerText = defaultTitle;
     }
     
-    // Check automatically if browser autofilled the username on load
     document.addEventListener("DOMContentLoaded", () => {
         if(document.getElementById('usernameInput').value) {
             fetchBranding();
